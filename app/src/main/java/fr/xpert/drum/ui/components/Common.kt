@@ -87,7 +87,7 @@ fun XpertWordmark() {
         Text(
             buildAnnotatedString {
                 withStyle(SpanStyle(color = X.Texte)) { append("XPert ") }
-                withStyle(SpanStyle(color = X.Orange)) { append("Drum") }
+                withStyle(SpanStyle(color = X.OrangeTexte)) { append("Drum") }
             },
             fontSize = 22.sp,
             style = MaterialTheme.typography.headlineSmall,

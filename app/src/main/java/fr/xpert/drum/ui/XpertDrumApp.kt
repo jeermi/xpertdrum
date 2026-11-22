@@ -4,7 +4,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -13,6 +15,7 @@ import androidx.compose.ui.Modifier
 import fr.xpert.drum.audio.AudioEngine
 import fr.xpert.drum.data.ProgressStore
 import fr.xpert.drum.ui.components.XpertBackground
+import fr.xpert.drum.ui.theme.X
 import fr.xpert.drum.ui.screens.CalibrationScreen
 import fr.xpert.drum.ui.screens.ExerciseScreen
 import fr.xpert.drum.ui.screens.ExercisesScreen
@@ -52,11 +55,13 @@ fun XpertDrumApp(engine: AudioEngine, store: ProgressStore) {
     BackHandler(enabled = stack.size > 1) { nav.back() }
 
     XpertBackground {
+        // Sans Surface à la racine, le texte serait noir par défaut : on fixe la couleur pour tout l'écran.
+        CompositionLocalProvider(LocalContentColor provides X.Texte) {
         Box(Modifier.fillMaxSize().safeDrawingPadding()) {
             when (val s = stack.last()) {
                 Screen.Home -> HomeScreen(store, nav)
                 Screen.Lessons -> LessonsScreen(store, nav)
-                is Screen.Lesson -> LessonScreen(s.id, store, nav)
+                is Screen.Lesson -> LessonScreen(s.id, engine, store, nav)
                 Screen.Exercises -> ExercisesScreen(store, nav)
                 is Screen.Exercise -> ExerciseScreen(s.id, engine, store, nav)
                 Screen.Metronome -> MetronomeScreen(engine, store, nav)
@@ -65,6 +70,7 @@ fun XpertDrumApp(engine: AudioEngine, store: ProgressStore) {
                 Screen.Calibration -> CalibrationScreen(engine, store, nav)
                 Screen.MicSetup -> MicSetupScreen(engine, store, nav)
             }
+        }
         }
     }
 }

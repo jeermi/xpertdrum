@@ -15,6 +15,8 @@ object X {
     val Marine = Color(0xFF1E2054)
     val Marine2 = Color(0xFF2C2F72)
     val Orange = Color(0xFFE8501E)
+    /** Orange éclairci pour du texte sur fond sombre (contraste suffisant). */
+    val OrangeTexte = Color(0xFFFF8A5C)
     val OrangeFonce = Color(0xFFC9410F)
     val Jaune = Color(0xFFFBC63C)
     val JauneLogo = Color(0xFFFFAB19)
@@ -32,7 +34,7 @@ object X {
     fun judgement(j: Judgement?): Color = when (j) {
         Judgement.PERFECT -> Vert
         Judgement.EARLY -> Bleu
-        Judgement.LATE -> Orange
+        Judgement.LATE -> OrangeTexte
         Judgement.MISS -> Rouge
         Judgement.EXTRA -> Texte2
         null -> Texte

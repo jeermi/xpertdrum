@@ -293,7 +293,7 @@ fun MicSetupScreen(engine: AudioEngine, store: ProgressStore, nav: Nav) {
                                 .background(X.Orange.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
                                 .padding(16.dp)
                         ) {
-                            Text("⚠️ Le clic du téléphone est presque aussi fort que tes coups", color = X.Orange, style = MaterialTheme.typography.titleMedium)
+                            Text("⚠️ Le clic du téléphone est presque aussi fort que tes coups", color = X.OrangeTexte, style = MaterialTheme.typography.titleMedium)
                             Text(
                                 "Le micro risque de prendre le clic pour un coup. Baisse un peu le volume, éloigne le téléphone du haut-parleur, ou utilise des écouteurs filaires, puis refais le réglage.",
                                 style = MaterialTheme.typography.bodyLarge,

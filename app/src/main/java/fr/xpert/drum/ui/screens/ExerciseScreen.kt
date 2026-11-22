@@ -328,7 +328,7 @@ private fun RunningView(s: PracticeSession, engine: AudioEngine, mic: MicListene
             if (countIn != null) {
                 Text(
                     if (countIn == 0) "Prêt ?" else "$countIn",
-                    color = X.Orange,
+                    color = X.OrangeTexte,
                     fontSize = 56.sp,
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = Modifier.align(Alignment.Center),
@@ -352,7 +352,7 @@ private fun RunningView(s: PracticeSession, engine: AudioEngine, mic: MicListene
             if (!mic.active && System.currentTimeMillis() - s.startedAtMillis > 1500) {
                 Text(
                     "Le micro n'a pas pu démarrer. Vérifie l'autorisation micro de l'appli dans les réglages Android.",
-                    color = X.Orange,
+                    color = X.OrangeTexte,
                     modifier = Modifier.weight(1f),
                 )
             } else {
