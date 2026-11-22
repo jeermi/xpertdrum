@@ -8,6 +8,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,7 +59,12 @@ fun XpertDrumApp(engine: AudioEngine, store: ProgressStore) {
         // Sans Surface à la racine, le texte serait noir par défaut : on fixe la couleur pour tout l'écran.
         CompositionLocalProvider(LocalContentColor provides X.Texte) {
         Box(Modifier.fillMaxSize().safeDrawingPadding()) {
-            when (val s = stack.last()) {
+            // key() : chaque écran (et chaque leçon / exercice) a son propre état, défilement compris.
+            // Sans ça, passer à la leçon ou à l'exercice suivant réutilisait l'état du précédent
+            // (page restée en bas, bilan ou tempo de l'exercice d'avant).
+            val current = stack.last()
+            key(stack.size, current) {
+            when (val s = current) {
                 Screen.Home -> HomeScreen(store, nav)
                 Screen.Lessons -> LessonsScreen(store, nav)
                 is Screen.Lesson -> LessonScreen(s.id, engine, store, nav)
@@ -69,6 +75,7 @@ fun XpertDrumApp(engine: AudioEngine, store: ProgressStore) {
                 Screen.Progress -> ProgressScreen(store, nav)
                 Screen.Calibration -> CalibrationScreen(engine, store, nav)
                 Screen.MicSetup -> MicSetupScreen(engine, store, nav)
+            }
             }
         }
         }

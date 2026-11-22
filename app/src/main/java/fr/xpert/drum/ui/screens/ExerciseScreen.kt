@@ -429,7 +429,8 @@ private fun SummaryView(ex: Exercise, sum: Summary, onRetry: () -> Unit, onNext:
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             SecondaryButton("↻ Recommencer", Modifier.weight(1f), onRetry)
-            PrimaryButton("Exercice suivant", Modifier.weight(1f), onNext)
+            val isLast = Exercises.all.lastOrNull() == ex
+            PrimaryButton(if (isLast) "Retour à la liste" else "Exercice suivant", Modifier.weight(1f), onNext)
         }
         Spacer(Modifier.height(16.dp))
     }
