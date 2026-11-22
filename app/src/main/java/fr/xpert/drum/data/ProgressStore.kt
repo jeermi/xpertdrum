@@ -27,6 +27,23 @@ class ProgressStore(context: Context) {
 
     val isCalibrated: Boolean get() = prefs.contains("calibration_ms")
 
+    /** true = on juge au micro (vraie batterie), false = pads à l'écran. */
+    var useMic: Boolean
+        get() = prefs.getBoolean("use_mic", true)
+        set(v) = prefs.edit().putBoolean("use_mic", v).apply()
+
+    /** Seuil de détection des coups au micro (échelle de OnsetDetector). */
+    var micThreshold: Float
+        get() = prefs.getFloat("mic_threshold", 0.03f)
+        set(v) = prefs.edit().putFloat("mic_threshold", v).apply()
+
+    /** Décalage mesuré entre le son joué et sa détection au micro (chaîne audio du téléphone). */
+    var micOffsetMs: Int
+        get() = prefs.getInt("mic_offset_ms", 0)
+        set(v) = prefs.edit().putInt("mic_offset_ms", v).apply()
+
+    val isMicCalibrated: Boolean get() = prefs.contains("mic_threshold")
+
     var metronomeBpm: Int
         get() = prefs.getInt("metronome_bpm", 80)
         set(v) = prefs.edit().putInt("metronome_bpm", v).apply()

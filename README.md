@@ -6,15 +6,17 @@ Charte graphique et logo repris de [XPert](https://jeermi.github.io/xpert/).
 ## Ce qu'il y a dedans
 
 - **Les bases** : 6 leçons (s'installer et se tenir, tenir les baguettes, le geste, les éléments de la batterie, compter et lire le rythme, bien travailler).
-- **Exercices** : 10 exercices progressifs (noires, croches alternées, grosse caisse, charleston, coordination, coups doubles, premier rythme rock, variante, paradiddle, premier break).
+- **Exercices** : 17 exercices progressifs (noires, croches alternées, grosse caisse, charleston, coordination, coups doubles, premier rythme rock, variante, paradiddle, premier break, puis 7 exercices d'**indépendance** bras G/D et jambes G/D).
   - partition de batterie qui défile, avec les doigtés D / G ;
-  - pads tactiles (multi-doigts) et verdict à chaque coup : **pile**, **en avance** ou **en retard**, avec l'écart en ms ;
+  - **l'appli écoute ta vraie batterie au micro** et donne un verdict à chaque coup : **pile**, **en avance** ou **en retard**, avec l'écart en ms (le micro juge le placement rythmique, pas l'élément frappé) ;
+  - en dépannage, pads tactiles à l'écran (multi-doigts) ;
   - décompte d'une mesure, métronome, **tempo qui monte** automatiquement ;
   - mode « Écouter » où l'appli joue le motif ;
   - bilan de fin : précision, tendance avance / retard, conseil pour la suite.
 - **Métronome** : 30 à 240 BPM, mesures 2/4 à 6/4, tap tempo, tempo qui monte.
 - **Pads libres** avec ou sans clic.
-- **Calibration** : mesure le délai son + écran propre au téléphone pour un verdict juste.
+- **Réglage du micro** (1 min) : bruit de la pièce, délai du téléphone mesuré en écoutant son propre clic, seuil de détection adapté à la force de tes coups. Le son est analysé en direct, jamais enregistré.
+- **Calibration des pads** : délai son + écran, si tu joues sur l'écran.
 - **Progression** : temps de pratique, records par exercice, historique (stocké sur le téléphone uniquement).
 
 Les sons de batterie sont synthétisés dans l'appli : aucun échantillon externe.
@@ -50,6 +52,8 @@ puis le mot de passe (le même pour la clé et le magasin) dans le secret `XPERT
 
 - `audio/` : moteur audio basse latence (`AudioTrack`, mode `PERFORMANCE_MODE_LOW_LATENCY`). Les sons sont planifiés
   à la frame près, et `AudioTrack.getTimestamp()` relie la position audio à l'horloge système pour juger les coups.
+  `MicListener` lit le micro (`AudioRecord`, source `UNPROCESSED` si disponible) et `OnsetDetector` repère les attaques
+  (pré-accentuation, énergie par trames de 2,7 ms comparée au seuil et au niveau précédent, instant affiné à l'échantillon).
 - `practice/` : modèle (éléments, motifs, exercices), séance d'exercice (décompte, boucle, tempo qui monte, jugement), métronome.
 - `content/` : textes des leçons.
 - `data/` : progression et réglages (SharedPreferences).
@@ -57,6 +61,7 @@ puis le mot de passe (le même pour la clé et le magasin) dans le secret `XPERT
 
 ## Pistes suivantes
 
+- Reconnaître quel élément est frappé (grosse caisse / caisse claire / charleston) au micro.
 - Import de partitions MusicXML / MIDI.
 - Quiz théorie / lecture / rudiments avec le moteur XPert.
 - Moteur natif Oboe si la latence d'`AudioTrack` s'avère trop élevée sur certains téléphones.

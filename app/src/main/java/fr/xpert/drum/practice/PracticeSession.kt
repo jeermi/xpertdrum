@@ -14,7 +14,7 @@ class NoteEvent(val frame: Long, val lane: Lane, val sticking: Char?) {
 class BarMark(val frame: Long, val countIn: Boolean, val bpm: Int)
 class BeatMark(val frame: Long, val number: Int, val countIn: Boolean)
 
-class Feedback(val judgement: Judgement, val deltaMs: Int, val atNanos: Long)
+class Feedback(val judgement: Judgement, val deltaMs: Int, val atNanos: Long, val counted: Boolean = true)
 
 class Stats {
     var perfect = 0; var early = 0; var late = 0; var miss = 0; var extra = 0
@@ -58,6 +58,8 @@ class PracticeSession(
     val demo: Boolean,
     private val metronome: Boolean,
     private val calibrationMs: Int,
+    /** Jugement par position rythmique (micro) plutôt que par élément (pads). */
+    val byPosition: Boolean = false,
     private val countInBars: Int = 1,
 ) : Scheduler {
     private val sr = engine.sampleRate
@@ -165,13 +167,57 @@ class PracticeSession(
         return Feedback(j, ms, hitNanos)
     }
 
+    /**
+     * Un coup entendu au micro à [onsetNanos]. On ne sait pas quel élément a été frappé :
+     * le coup valide la position rythmique attendue la plus proche (toutes les notes qui
+     * tombent à cet instant, par exemple charleston + grosse caisse ensemble).
+     */
+    fun onOnset(onsetNanos: Long): Feedback {
+        // Rebond, flam ou deux éléments frappés quasi ensemble : un seul coup.
+        if (onsetNanos - lastMatchedOnset < 70_000_000L) return Feedback(Judgement.EXTRA, 0, onsetNanos, counted = false)
+        val adjusted = onsetNanos - calibrationMs * 1_000_000L
+        var best: NoteEvent? = null
+        var bestDelta = Long.MAX_VALUE
+        for (n in notes) {
+            if (n.result != null) continue
+            val d = adjusted - expectedNanos(n)
+            if (abs(d) < abs(bestDelta)) {
+                best = n; bestDelta = d
+            }
+        }
+        if (best == null || abs(bestDelta) > WINDOW_NANOS) {
+            stats.record(Judgement.EXTRA, 0)
+            return Feedback(Judgement.EXTRA, 0, onsetNanos)
+        }
+        val ms = (bestDelta / 1_000_000L).toInt()
+        val j = when {
+            abs(ms) <= PERFECT_MS -> Judgement.PERFECT
+            ms < 0 -> Judgement.EARLY
+            else -> Judgement.LATE
+        }
+        for (n in notes) {
+            if (n.frame == best.frame && n.result == null) {
+                n.deltaMs = ms; n.result = j
+            }
+        }
+        lastMatchedOnset = onsetNanos
+        stats.record(j, ms)
+        return Feedback(j, ms, onsetNanos)
+    }
+
+    private var lastMatchedOnset = 0L
+
     /** À appeler à chaque image : marque les coups ratés et fait le ménage. */
     fun tick(nowNanos: Long) {
         val adjustedNow = nowNanos - calibrationMs * 1_000_000L
         for (n in notes) {
             val t = expectedNanos(n)
             if (!demo && n.result == null && adjustedNow - t > WINDOW_NANOS) {
-                n.result = Judgement.MISS
+                if (byPosition) {
+                    for (o in notes) if (o.frame == n.frame) o.result = Judgement.MISS
+                } else {
+                    n.result = Judgement.MISS
+                }
                 stats.record(Judgement.MISS, 0)
             }
             if (nowNanos - t > 3_000_000_000L) notes.remove(n)

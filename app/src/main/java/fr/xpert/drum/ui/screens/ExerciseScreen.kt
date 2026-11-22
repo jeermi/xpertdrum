@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -24,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.xpert.drum.audio.AudioEngine
+import fr.xpert.drum.audio.MicListener
 import fr.xpert.drum.data.ProgressStore
 import fr.xpert.drum.data.SessionRecord
 import fr.xpert.drum.practice.Exercise
@@ -66,6 +70,11 @@ fun ExerciseScreen(id: String, engine: AudioEngine, store: ProgressStore, nav: N
     var metronome by remember { mutableStateOf(true) }
     var session by remember { mutableStateOf<PracticeSession?>(null) }
     var summary by remember { mutableStateOf<Summary?>(null) }
+    var useMic by remember { mutableStateOf(store.useMic) }
+    var startAfterPermission by remember { mutableStateOf(false) }
+    val (micGranted, requestMic) = rememberMicPermission { ok -> if (ok) startAfterPermission = true }
+    val listening = session?.let { !it.demo && it.byPosition } == true
+    val mic = rememberMic(engine, micGranted && listening)
 
     fun stop(showSummary: Boolean) {
         val s = session ?: return
@@ -87,7 +96,13 @@ fun ExerciseScreen(id: String, engine: AudioEngine, store: ProgressStore, nav: N
     }
 
     fun start(demo: Boolean) {
+        val withMic = useMic && !demo
+        if (withMic && !micGranted) {
+            requestMic()
+            return
+        }
         summary = null
+        mic.detector.threshold = store.micThreshold
         val s = PracticeSession(
             engine = engine,
             exercise = ex,
@@ -95,10 +110,16 @@ fun ExerciseScreen(id: String, engine: AudioEngine, store: ProgressStore, nav: N
             rampEnabled = ramp && !demo,
             demo = demo,
             metronome = metronome,
-            calibrationMs = store.calibrationMs,
+            calibrationMs = if (withMic) store.micOffsetMs else store.calibrationMs,
+            byPosition = withMic,
         )
         session = s
         engine.scheduler = s
+    }
+
+    if (startAfterPermission) {
+        startAfterPermission = false
+        start(demo = false)
     }
 
     DisposableEffect(Unit) { onDispose { stop(showSummary = false) } }
@@ -108,7 +129,7 @@ fun ExerciseScreen(id: String, engine: AudioEngine, store: ProgressStore, nav: N
     Column(Modifier.fillMaxSize()) {
         ScreenHeader(ex.title) { nav.back() }
         when {
-            s != null -> RunningView(s, engine) { stop(showSummary = true) }
+            s != null -> RunningView(s, engine, if (s.byPosition) mic else null, store.micThreshold) { stop(showSummary = true) }
             sum != null -> SummaryView(
                 ex, sum,
                 onRetry = { summary = null },
@@ -121,9 +142,10 @@ fun ExerciseScreen(id: String, engine: AudioEngine, store: ProgressStore, nav: N
             )
             else -> SetupView(
                 ex, store, startBpm, { startBpm = it }, ramp, { ramp = it }, metronome, { metronome = it },
+                useMic, { useMic = it; store.useMic = it },
                 onListen = { start(demo = true) },
                 onPlay = { start(demo = false) },
-                onCalibrate = { nav.go(Screen.Calibration) },
+                onCalibrate = { nav.go(if (useMic) Screen.MicSetup else Screen.Calibration) },
             )
         }
     }
@@ -136,6 +158,7 @@ private fun SetupView(
     startBpm: Int, setStartBpm: (Int) -> Unit,
     ramp: Boolean, setRamp: (Boolean) -> Unit,
     metronome: Boolean, setMetronome: (Boolean) -> Unit,
+    useMic: Boolean, setUseMic: (Boolean) -> Unit,
     onListen: () -> Unit,
     onPlay: () -> Unit,
     onCalibrate: () -> Unit,
@@ -157,9 +180,39 @@ private fun SetupView(
             Text("💡 Conseil", color = X.Jaune, style = MaterialTheme.typography.titleMedium)
             Text(ex.tip, style = MaterialTheme.typography.bodyLarge)
         }
-        if (!store.isCalibrated) {
+        XCard {
+            Text("Je joue sur…", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = useMic,
+                    onClick = { setUseMic(true) },
+                    label = { Text("🎤 Ma batterie") },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = X.Orange, selectedLabelColor = X.Texte),
+                )
+                FilterChip(
+                    selected = !useMic,
+                    onClick = { setUseMic(false) },
+                    label = { Text("👆 L'écran") },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = X.Orange, selectedLabelColor = X.Texte),
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                if (useMic) "Le micro du téléphone écoute ta batterie (ou ton pad d'entraînement). Chaque coup est comparé au tempo, quel que soit l'élément frappé."
+                else "Tu tapes sur les pads de l'écran, un pad par élément.",
+                color = X.Texte2,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        if (useMic && !store.isMicCalibrated) {
             XCard(onClick = onCalibrate) {
-                Text("⚙️ Calibration pas encore faite", color = X.Jaune, style = MaterialTheme.typography.titleMedium)
+                Text("🎤 Réglage du micro pas encore fait", color = X.Jaune, style = MaterialTheme.typography.titleMedium)
+                Text("Sans lui, l'appli peut rater tes coups ou entendre le clic. Touche ici (1 min).", color = X.Texte2)
+            }
+        } else if (!useMic && !store.isCalibrated) {
+            XCard(onClick = onCalibrate) {
+                Text("⚙️ Calibration des pads pas encore faite", color = X.Jaune, style = MaterialTheme.typography.titleMedium)
                 Text("Le verdict avance / retard sera moins fiable. Touche ici pour la faire (30 s).", color = X.Texte2)
             }
         }
@@ -182,7 +235,8 @@ private fun SetupView(
             ToggleRow("Métronome", "Le clic pendant l'exercice (le décompte reste toujours)", metronome, setMetronome)
         }
         Text(
-            "Frappe les pads quand les notes touchent la barre jaune. D = main droite, G = main gauche.",
+            (if (useMic) "Joue quand les notes touchent la barre jaune." else "Frappe les pads quand les notes touchent la barre jaune.") +
+                " D = main droite, G = main gauche.",
             color = X.Texte2,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -210,13 +264,25 @@ fun ToggleRow(title: String, subtitle: String, checked: Boolean, onChange: (Bool
 }
 
 @Composable
-private fun RunningView(s: PracticeSession, engine: AudioEngine, onStop: () -> Unit) {
+private fun RunningView(s: PracticeSession, engine: AudioEngine, mic: MicListener?, micThreshold: Float, onStop: () -> Unit) {
     var now by remember { mutableLongStateOf(System.nanoTime()) }
     var feedback by remember { mutableStateOf<Feedback?>(null) }
+    var micLevel by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(s) {
+        mic?.onsets?.clear()
         while (true) {
             withFrameNanos { }
             now = System.nanoTime()
+            if (mic != null) {
+                micLevel = maxOf(mic.detector.takePeak(), micLevel * 0.85f)
+                while (true) {
+                    val o = mic.onsets.poll() ?: break
+                    if (s.countInBeat(o.nanos) == null) {
+                        val fb = s.onOnset(o.nanos)
+                        if (fb.counted) feedback = fb
+                    }
+                }
+            }
             s.tick(now)
         }
     }
@@ -280,10 +346,24 @@ private fun RunningView(s: PracticeSession, engine: AudioEngine, onStop: () -> U
         }
         Spacer(Modifier.height(10.dp))
 
-        PadGrid(s.exercise.pattern.lanes, now, Modifier.weight(1f)) { lane, t ->
-            engine.playNow(engine.kit.forLane(lane))
-            if (!s.demo && s.countInBeat(System.nanoTime()) == null) {
-                feedback = s.onHit(lane, t)
+        if (mic != null) {
+            val fb = feedback
+            val flash = if (fb != null && now - fb.atNanos < 180_000_000L) X.judgement(fb.judgement) else null
+            if (!mic.active && System.currentTimeMillis() - s.startedAtMillis > 1500) {
+                Text(
+                    "Le micro n'a pas pu démarrer. Vérifie l'autorisation micro de l'appli dans les réglages Android.",
+                    color = X.Orange,
+                    modifier = Modifier.weight(1f),
+                )
+            } else {
+                MicHitIndicator(micLevel, micThreshold, flash, Modifier.weight(1f).fillMaxWidth())
+            }
+        } else {
+            PadGrid(s.exercise.pattern.lanes, now, Modifier.weight(1f)) { lane, t ->
+                engine.playNow(engine.kit.forLane(lane))
+                if (!s.demo && s.countInBeat(System.nanoTime()) == null) {
+                    feedback = s.onHit(lane, t)
+                }
             }
         }
         Spacer(Modifier.height(10.dp))

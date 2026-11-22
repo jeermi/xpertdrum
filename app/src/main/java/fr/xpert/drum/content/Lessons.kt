@@ -59,8 +59,8 @@ object Lessons {
                         "Choisis tôt et garde ton choix."
                 ),
                 Block.Tip(
-                    "Pas de batterie sous la main ? Un pad d'entraînement, un coussin ferme ou un annuaire font très bien l'affaire " +
-                        "pour les mains, et les pads de l'appli pour travailler le placement."
+                    "Pas de batterie sous la main ? Un pad d'entraînement fait très bien l'affaire : le micro l'entend aussi. " +
+                        "Et en dépannage, tu peux jouer sur les pads de l'écran (option dans chaque exercice)."
                 ),
             ),
         ),
@@ -162,7 +162,7 @@ object Lessons {
                     ),
                 ),
                 Block.Tip(
-                    "Dans l'appli, les pads reprennent ces abréviations : HH, CC, GC, T et CR."
+                    "Dans l'appli, les éléments ont ces abréviations : HH (charleston à la main), HP (charleston au pied), CC, GC, T, RD (ride) et CR."
                 ),
             ),
         ),
@@ -190,12 +190,46 @@ object Lessons {
                         "Chaque élément a sa place sur la portée, pas sa hauteur de note.",
                         "Grosse caisse : dans l'interligne du bas.",
                         "Caisse claire : dans le 3e interligne en partant du bas.",
-                        "Charleston : une croix au-dessus de la portée. Crash : une croix sur une ligne supplémentaire.",
+                        "Charleston : une croix au-dessus de la portée. Crash : une croix sur une ligne supplémentaire. Ride : une croix sur la ligne du haut.",
+                        "Charleston au pied : une croix sous la portée.",
                         "Sous les notes, D = main droite et G = main gauche.",
                     ),
                 ),
                 Block.Tip(
                     "Compte à voix haute pendant les exercices, surtout au début. Ça paraît bête, mais c'est ce qui ancre le tempo."
+                ),
+            ),
+        ),
+        Lesson(
+            id = "independance",
+            icon = "🧩",
+            title = "L'indépendance des membres",
+            summary = "Faire jouer bras gauche, bras droit, pied gauche et pied droit chacun leur partie.",
+            blocks = listOf(
+                Block.Text(
+                    "L'indépendance, c'est la capacité de jouer quatre rythmes différents en même temps : un pour chaque " +
+                        "membre. Personne ne naît avec : elle se construit lentement, un membre à la fois."
+                ),
+                Block.Bullets(
+                    "La méthode",
+                    listOf(
+                        "Commence par le membre qui joue la partie la plus régulière (souvent la main droite) : c'est le « tapis ».",
+                        "Ajoute un seul membre à la fois, et ne passe au suivant que quand le précédent est automatique.",
+                        "Joue nettement plus lentement que tu ne le crois nécessaire : 50 à 60 BPM, c'est très bien.",
+                        "Dis le rythme à voix haute (« 1 et 2 et… ») : ça aide le cerveau à séparer les parties.",
+                        "Si tout s'écroule, enlève le dernier membre ajouté et recommence.",
+                    ),
+                ),
+                Block.Bullets(
+                    "Le pied gauche",
+                    listOf(
+                        "Il actionne la pédale du charleston : appuyer ferme les cymbales et fait un « tchik ».",
+                        "Talon posé, c'est la pointe du pied qui appuie puis relâche, comme on tape du pied en écoutant de la musique.",
+                        "Au début, il joue souvent sur les temps 2 et 4, en même temps que la caisse claire.",
+                    ),
+                ),
+                Block.Tip(
+                    "Les exercices du niveau 5 suivent cet ordre : mains + pied droit, les deux pieds, pieds + mains, deux rythmes de mains, puis les quatre membres."
                 ),
             ),
         ),
@@ -228,8 +262,8 @@ object Lessons {
                         "existent) dès que tu joues sur une batterie acoustique : les dégâts sur l'audition sont définitifs."
                 ),
                 Block.Tip(
-                    "Avant ta première séance, lance la calibration (Réglages) : elle mesure le délai de ton téléphone pour que " +
-                        "le verdict « pile / en avance / en retard » soit juste."
+                    "Avant ta première séance, fais le « Réglage du micro » depuis l'accueil : l'appli apprend à entendre ta " +
+                        "batterie et mesure le délai de ton téléphone, pour que le verdict « pile / en avance / en retard » soit juste."
                 ),
             ),
         ),

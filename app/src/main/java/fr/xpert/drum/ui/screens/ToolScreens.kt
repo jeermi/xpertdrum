@@ -212,7 +212,7 @@ fun FreePadsScreen(engine: AudioEngine, nav: Nav) {
             TextButton(onClick = { bpm = (bpm + 5).coerceAtMost(240); metro.bpm = bpm }) { Text("+5", color = X.Jaune) }
         }
         PadGrid(
-            listOf(Lane.CRASH, Lane.HIHAT, Lane.TOM, Lane.SNARE, Lane.KICK),
+            listOf(Lane.CRASH, Lane.RIDE, Lane.HIHAT, Lane.SNARE, Lane.HHFOOT, Lane.KICK),
             now,
             Modifier
                 .weight(1f)

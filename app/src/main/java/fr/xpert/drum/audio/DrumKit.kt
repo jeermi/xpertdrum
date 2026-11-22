@@ -35,11 +35,19 @@ class DrumKit(private val sampleRate: Int) {
     val crash = highPassed(render("crash", 1.6) { t, rnd, _ ->
         rnd.nextDouble(-1.0, 1.0) * 0.45 * exp(-t * 2.6)
     })
+    val ride = highPassed(render("ride", 1.0) { t, rnd, _ ->
+        rnd.nextDouble(-1.0, 1.0) * 0.25 * exp(-t * 4.0) + sin(2 * PI * 3200.0 * t) * 0.12 * exp(-t * 3.0)
+    })
+    val hihatFoot = highPassed(render("hihatFoot", 0.05) { t, rnd, _ ->
+        rnd.nextDouble(-1.0, 1.0) * 0.4 * exp(-t * 90.0)
+    })
     val click = render("click", 0.04) { t, _, _ -> sin(2 * PI * 1000.0 * t) * 0.55 * exp(-t * 110.0) }
     val clickAccent = render("clickAccent", 0.05) { t, _, _ -> sin(2 * PI * 1600.0 * t) * 0.8 * exp(-t * 90.0) }
 
     fun forLane(lane: Lane): Sound = when (lane) {
         Lane.CRASH -> crash
+        Lane.RIDE -> ride
+        Lane.HHFOOT -> hihatFoot
         Lane.HIHAT -> hihat
         Lane.TOM -> tom
         Lane.SNARE -> snare

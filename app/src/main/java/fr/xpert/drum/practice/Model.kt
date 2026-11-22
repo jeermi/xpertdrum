@@ -12,10 +12,12 @@ enum class Lane(
     val foot: Boolean,
 ) {
     CRASH("Crash", "CR", -2, true, false),
+    RIDE("Ride", "RD", 0, true, false),
     HIHAT("Charleston", "HH", -1, true, false),
     TOM("Tom", "T", 1, false, false),
     SNARE("Caisse claire", "CC", 3, false, false),
     KICK("Grosse caisse", "GC", 7, false, true),
+    HHFOOT("Charleston au pied", "HP", 9, true, true),
 }
 
 /** Un coup à jouer : [step] est l'indice de pas depuis le début du motif. */

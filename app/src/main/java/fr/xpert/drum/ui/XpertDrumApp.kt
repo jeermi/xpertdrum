@@ -21,6 +21,7 @@ import fr.xpert.drum.ui.screens.HomeScreen
 import fr.xpert.drum.ui.screens.LessonScreen
 import fr.xpert.drum.ui.screens.LessonsScreen
 import fr.xpert.drum.ui.screens.MetronomeScreen
+import fr.xpert.drum.ui.screens.MicSetupScreen
 import fr.xpert.drum.ui.screens.ProgressScreen
 
 sealed interface Screen {
@@ -33,6 +34,7 @@ sealed interface Screen {
     data object Pads : Screen
     data object Progress : Screen
     data object Calibration : Screen
+    data object MicSetup : Screen
 }
 
 class Nav(private val get: () -> List<Screen>, private val set: (List<Screen>) -> Unit) {
@@ -61,6 +63,7 @@ fun XpertDrumApp(engine: AudioEngine, store: ProgressStore) {
                 Screen.Pads -> FreePadsScreen(engine, nav)
                 Screen.Progress -> ProgressScreen(store, nav)
                 Screen.Calibration -> CalibrationScreen(engine, store, nav)
+                Screen.MicSetup -> MicSetupScreen(engine, store, nav)
             }
         }
     }

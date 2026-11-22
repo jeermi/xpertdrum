@@ -30,6 +30,8 @@ import fr.xpert.drum.ui.theme.X
 
 fun laneColor(lane: Lane): Color = when (lane) {
     Lane.CRASH -> Color(0xFFFFAB19)
+    Lane.RIDE -> Color(0xFF4FD1C5)
+    Lane.HHFOOT -> Color(0xFF2BB673)
     Lane.HIHAT -> Color(0xFFFBC63C)
     Lane.TOM -> Color(0xFF8E7CF0)
     Lane.SNARE -> Color(0xFFE8501E)
@@ -112,14 +114,18 @@ fun PadGrid(
                 }
             }
         }
-        for (lane in feet) {
-            DrumPad(
-                lane, nowNanos,
+        if (feet.isNotEmpty()) {
+            Row(
                 Modifier
                     .fillMaxWidth()
                     .weight(if (hands.isEmpty()) 1f else 0.7f),
-                onHit = onHit,
-            )
+                horizontalArrangement = Arrangement.spacedBy(gap),
+            ) {
+                // Pied gauche à gauche, pied droit à droite
+                for (lane in feet.sortedByDescending { it.ordinal }) {
+                    DrumPad(lane, nowNanos, Modifier.weight(1f).fillMaxHeight(), onHit = onHit)
+                }
+            }
         }
     }
 }

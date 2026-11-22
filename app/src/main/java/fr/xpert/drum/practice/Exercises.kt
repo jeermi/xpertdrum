@@ -1,7 +1,9 @@
 package fr.xpert.drum.practice
 
+import fr.xpert.drum.practice.Lane.HHFOOT
 import fr.xpert.drum.practice.Lane.HIHAT
 import fr.xpert.drum.practice.Lane.KICK
+import fr.xpert.drum.practice.Lane.RIDE
 import fr.xpert.drum.practice.Lane.SNARE
 
 /** Parcours grand débutant : une main, puis l'alternance, le pied, la coordination, le premier rythme. */
@@ -121,6 +123,103 @@ object Exercises {
             ),
             startBpm = 55, targetBpm = 100, rampEveryBars = 4,
         ),
+        // ---------------- Niveau 5 : indépendance des quatre membres
+        Exercise(
+            id = "indep-mains-gc",
+            level = 5,
+            title = "Mains alternées + grosse caisse",
+            description = "Croches alternées D G à la caisse claire, et la grosse caisse sur chaque temps.",
+            tip = "La grosse caisse tombe toujours avec la main droite. Joue d'abord les mains seules, puis ajoute le pied sans changer les mains.",
+            pattern = pattern(
+                2, 4,
+                Row(SNARE, "xxxxxxxx", "DGDGDGDG"),
+                Row(KICK, "x.x.x.x."),
+            ),
+            startBpm = 55, targetBpm = 95,
+        ),
+        Exercise(
+            id = "indep-deux-pieds",
+            level = 5,
+            title = "Les deux pieds",
+            description = "Grosse caisse (pied droit) sur 1 et 3, charleston au pied gauche sur 2 et 4.",
+            tip = "Pied gauche : appuie sur la pédale du charleston pour faire « tchik », puis relâche. Les deux pieds se répondent comme une marche.",
+            pattern = pattern(
+                1, 4,
+                Row(KICK, "x.x."),
+                Row(HHFOOT, ".x.x"),
+            ),
+            startBpm = 60, targetBpm = 110,
+        ),
+        Exercise(
+            id = "indep-pieds-mains",
+            level = 5,
+            title = "Pieds qui marchent, mains en noires",
+            description = "Les deux pieds alternés comme avant, et les mains jouent D G D G sur chaque temps.",
+            tip = "Main droite avec la grosse caisse, main gauche avec le charleston au pied : chaque côté du corps joue ensemble.",
+            pattern = pattern(
+                1, 4,
+                Row(SNARE, "xxxx", "DGDG"),
+                Row(KICK, "x.x."),
+                Row(HHFOOT, ".x.x"),
+            ),
+            startBpm = 55, targetBpm = 100,
+        ),
+        Exercise(
+            id = "indep-deux-mains",
+            level = 5,
+            title = "Deux mains, deux rythmes",
+            description = "Main droite en noires sur la ride, main gauche en croches à la caisse claire.",
+            tip = "Sur les temps les deux mains frappent ensemble, sur les « et » seule la gauche joue. Compte « 1 et 2 et » à voix haute.",
+            pattern = pattern(
+                2, 4,
+                Row(RIDE, "x.x.x.x.", "D.D.D.D."),
+                Row(SNARE, "xxxxxxxx", "GGGGGGGG"),
+            ),
+            startBpm = 50, targetBpm = 90,
+        ),
+        Exercise(
+            id = "indep-gauche-contretemps",
+            level = 5,
+            title = "Main gauche à contretemps",
+            description = "Ride en noires (main droite), caisse claire sur tous les « et » (main gauche), grosse caisse sur 1 et 3.",
+            tip = "La main gauche ne joue jamais avec la droite : elle tombe exactement entre deux coups de ride. Très lentement au début !",
+            pattern = pattern(
+                2, 4,
+                Row(RIDE, "x.x.x.x.", "D.D.D.D."),
+                Row(SNARE, ".x.x.x.x", ".G.G.G.G"),
+                Row(KICK, "x...x..."),
+            ),
+            startBpm = 50, targetBpm = 90,
+        ),
+        Exercise(
+            id = "indep-gc-bouge",
+            level = 5,
+            title = "Grosse caisse qui bouge",
+            description = "Le rythme rock aux mains, et la grosse caisse sur 1, le « et » du 2 et le « et » du 3.",
+            tip = "Les mains restent un tapis régulier (l'« ostinato »). Seul le pied change : écoute-le se glisser entre les temps.",
+            pattern = pattern(
+                2, 4,
+                Row(HIHAT, "xxxxxxxx", "DDDDDDDD"),
+                Row(SNARE, "..x...x.", "..G...G."),
+                Row(KICK, "x..x.x.."),
+            ),
+            startBpm = 50, targetBpm = 95,
+        ),
+        Exercise(
+            id = "indep-quatre-membres",
+            level = 5,
+            title = "Les quatre membres",
+            description = "Ride en croches, caisse claire sur 2 et 4, grosse caisse sur 1 et 3, charleston au pied sur 2 et 4.",
+            tip = "Le pied gauche joue en même temps que la caisse claire. Ajoute les membres un par un : ride, puis grosse caisse, puis caisse claire, puis pied gauche.",
+            pattern = pattern(
+                2, 4,
+                Row(RIDE, "xxxxxxxx", "DDDDDDDD"),
+                Row(SNARE, "..x...x.", "..G...G."),
+                Row(KICK, "x...x..."),
+                Row(HHFOOT, "..x...x."),
+            ),
+            startBpm = 50, targetBpm = 95,
+        ),
     )
 
     fun byId(id: String): Exercise? = all.firstOrNull { it.id == id }
@@ -129,6 +228,7 @@ object Exercises {
         1 -> "Niveau 1 · Les mains et le pied"
         2 -> "Niveau 2 · Coordination"
         3 -> "Niveau 3 · Premiers rythmes"
-        else -> "Niveau 4 · Breaks"
+        4 -> "Niveau 4 · Breaks"
+        else -> "Niveau 5 · Indépendance des membres"
     }
 }

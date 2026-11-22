@@ -54,7 +54,7 @@ fun HomeScreen(store: ProgressStore, nav: Nav) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Les bases pour bien démarrer, des exercices qui écoutent ton timing et un métronome qui te fait progresser.",
+            "Les bases pour bien démarrer, des exercices qui écoutent ta batterie et un métronome qui te fait progresser.",
             color = X.Texte2,
             style = MaterialTheme.typography.bodyLarge,
         )
@@ -66,7 +66,7 @@ fun HomeScreen(store: ProgressStore, nav: Nav) {
         ) { nav.go(Screen.Lessons) }
         Spacer(Modifier.height(12.dp))
         MenuCard(
-            "🎯", "Exercices", "Partition qui défile, pads, avance / retard / pile",
+            "🎯", "Exercices", "Joue sur ta batterie : pile, en avance ou en retard",
             "${bests.size} exercice${if (bests.size > 1) "s" else ""} joué${if (bests.size > 1) "s" else ""} sur ${Exercises.all.size}",
         ) { nav.go(Screen.Exercises) }
 
@@ -82,8 +82,13 @@ fun HomeScreen(store: ProgressStore, nav: Nav) {
         ) { nav.go(Screen.Progress) }
         Spacer(Modifier.height(12.dp))
         MenuCard(
-            "⚙️", "Calibration", "Règle le délai de ton téléphone pour un verdict juste",
-            if (store.isCalibrated) "Décalage : ${store.calibrationMs} ms" else "À faire avant le premier exercice",
+            "🎤", "Réglage du micro", "Pour que l'appli entende ta batterie (1 min)",
+            if (store.isMicCalibrated) "Réglé · délai ${store.micOffsetMs} ms" else "À faire avant le premier exercice",
+        ) { nav.go(Screen.MicSetup) }
+        Spacer(Modifier.height(12.dp))
+        MenuCard(
+            "👆", "Calibration des pads", "Seulement si tu joues sur l'écran",
+            if (store.isCalibrated) "Décalage : ${store.calibrationMs} ms" else null,
         ) { nav.go(Screen.Calibration) }
         Spacer(Modifier.height(24.dp))
     }

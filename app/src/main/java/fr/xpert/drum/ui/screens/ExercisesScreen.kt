@@ -36,11 +36,11 @@ fun ExercisesScreen(store: ProgressStore, nav: Nav) {
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
         ) {
-            if (!store.isCalibrated) {
-                XCard(onClick = { nav.go(Screen.Calibration) }) {
-                    Text("⚙️ Fais d'abord la calibration", style = MaterialTheme.typography.titleMedium, color = X.Jaune)
+            if (store.useMic && !store.isMicCalibrated) {
+                XCard(onClick = { nav.go(Screen.MicSetup) }) {
+                    Text("🎤 Fais d'abord le réglage du micro", style = MaterialTheme.typography.titleMedium, color = X.Jaune)
                     Text(
-                        "30 secondes pour mesurer le délai de ton téléphone. Sans ça, l'appli risque de te dire « en retard » alors que tu es pile.",
+                        "1 minute pour que l'appli entende bien ta batterie et connaisse le délai de ton téléphone.",
                         color = X.Texte2,
                     )
                 }
