@@ -17,10 +17,9 @@ import fr.xpert.drum.audio.AudioEngine
 import fr.xpert.drum.data.ProgressStore
 import fr.xpert.drum.ui.components.XpertBackground
 import fr.xpert.drum.ui.theme.X
-import fr.xpert.drum.ui.screens.CalibrationScreen
 import fr.xpert.drum.ui.screens.ExerciseScreen
 import fr.xpert.drum.ui.screens.ExercisesScreen
-import fr.xpert.drum.ui.screens.FreePadsScreen
+import fr.xpert.drum.ui.screens.WelcomeScreen
 import fr.xpert.drum.ui.screens.HomeScreen
 import fr.xpert.drum.ui.screens.LessonScreen
 import fr.xpert.drum.ui.screens.LessonsScreen
@@ -35,9 +34,8 @@ sealed interface Screen {
     data object Exercises : Screen
     data class Exercise(val id: String) : Screen
     data object Metronome : Screen
-    data object Pads : Screen
+    data object Name : Screen
     data object Progress : Screen
-    data object Calibration : Screen
     data object MicSetup : Screen
 }
 
@@ -51,9 +49,12 @@ class Nav(private val get: () -> List<Screen>, private val set: (List<Screen>) -
 
 @Composable
 fun XpertDrumApp(engine: AudioEngine, store: ProgressStore) {
-    var stack by remember { mutableStateOf(listOf<Screen>(Screen.Home)) }
+    // Premier lancement : on commence par demander le prénom.
+    var stack by remember {
+        mutableStateOf(if (store.firstName.isEmpty()) listOf<Screen>(Screen.Home, Screen.Name) else listOf<Screen>(Screen.Home))
+    }
     val nav = remember { Nav({ stack }, { stack = it }) }
-    BackHandler(enabled = stack.size > 1) { nav.back() }
+    BackHandler(enabled = stack.size > 1 && !(stack.last() == Screen.Name && store.firstName.isEmpty())) { nav.back() }
 
     XpertBackground {
         // Sans Surface à la racine, le texte serait noir par défaut : on fixe la couleur pour tout l'écran.
@@ -71,9 +72,8 @@ fun XpertDrumApp(engine: AudioEngine, store: ProgressStore) {
                 Screen.Exercises -> ExercisesScreen(store, nav)
                 is Screen.Exercise -> ExerciseScreen(s.id, engine, store, nav)
                 Screen.Metronome -> MetronomeScreen(engine, store, nav)
-                Screen.Pads -> FreePadsScreen(engine, nav)
+                Screen.Name -> WelcomeScreen(store, nav)
                 Screen.Progress -> ProgressScreen(store, nav)
-                Screen.Calibration -> CalibrationScreen(engine, store, nav)
                 Screen.MicSetup -> MicSetupScreen(engine, store, nav)
             }
             }

@@ -20,17 +20,10 @@ data class BestScore(val accuracy: Int, val bpm: Int, val sessions: Int)
 class ProgressStore(context: Context) {
     private val prefs = context.getSharedPreferences("xpert_drum", Context.MODE_PRIVATE)
 
-    /** Décalage moyen mesuré entre le clic entendu et le doigt sur l'écran. */
-    var calibrationMs: Int
-        get() = prefs.getInt("calibration_ms", 0)
-        set(v) = prefs.edit().putInt("calibration_ms", v).apply()
-
-    val isCalibrated: Boolean get() = prefs.contains("calibration_ms")
-
-    /** true = on juge au micro (vraie batterie), false = pads à l'écran. */
-    var useMic: Boolean
-        get() = prefs.getBoolean("use_mic", true)
-        set(v) = prefs.edit().putBoolean("use_mic", v).apply()
+    /** Prénom demandé au premier lancement (vide tant qu'il n'est pas saisi). */
+    var firstName: String
+        get() = prefs.getString("first_name", "") ?: ""
+        set(v) = prefs.edit().putString("first_name", v.trim()).apply()
 
     /** Seuil de détection des coups au micro (échelle de OnsetDetector). */
     var micThreshold: Float

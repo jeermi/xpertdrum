@@ -9,14 +9,12 @@ Charte graphique et logo repris de [XPert](https://jeermi.github.io/xpert/).
 - **Exercices** : 39 exercices progressifs (noires, croches alternées, grosse caisse, charleston, coordination, coups doubles, premier rythme rock, variante, paradiddle, premier break, puis 7 exercices d'**indépendance** bras G/D et jambes G/D, et 22 exercices de lecture qui suivent la progression de la méthode Dante Agostini vol. 1 : lecture appliquée avec accents, doubles croches et silences, point et syncope, triolets et shuffle, 6/8 et 12/8, partitions de 2 à 4 mesures). Les exercices sont écrits pour l'appli, ils ne recopient pas les pages du livre.
   - partition de batterie qui défile, avec les doigtés D / G ;
   - **l'appli écoute ta vraie batterie au micro** et donne un verdict à chaque coup : **pile**, **en avance** ou **en retard**, avec l'écart en ms (le micro juge le placement rythmique, pas l'élément frappé) ;
-  - en dépannage, pads tactiles à l'écran (multi-doigts) ;
   - décompte d'une mesure, métronome, **tempo qui monte** automatiquement ;
   - mode « Écouter » où l'appli joue le motif ;
   - bilan de fin : précision, tendance avance / retard, conseil pour la suite.
 - **Métronome** : 30 à 240 BPM, mesures 2/4 à 6/4, tap tempo, tempo qui monte.
-- **Pads libres** avec ou sans clic.
+- **Prénom** demandé au premier lancement (modifiable depuis l'accueil). L'appli écoute uniquement ta vraie batterie au micro : il n'y a plus de pad tactile.
 - **Réglage du micro** (1 min) : bruit de la pièce, délai du téléphone mesuré en écoutant son propre clic, seuil de détection adapté à la force de tes coups. Le son est analysé en direct, jamais enregistré.
-- **Calibration des pads** : délai son + écran, si tu joues sur l'écran.
 - **Progression** : temps de pratique, records par exercice, historique (stocké sur le téléphone uniquement).
 
 Les sons de batterie sont synthétisés dans l'appli : aucun échantillon externe.

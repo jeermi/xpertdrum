@@ -51,7 +51,6 @@ import fr.xpert.drum.practice.PracticeSession
 import fr.xpert.drum.practice.Stats
 import fr.xpert.drum.ui.Nav
 import fr.xpert.drum.ui.Screen
-import fr.xpert.drum.ui.components.PadGrid
 import fr.xpert.drum.ui.components.PrimaryButton
 import fr.xpert.drum.ui.components.ScreenHeader
 import fr.xpert.drum.ui.components.ScrollingStaff
@@ -70,7 +69,6 @@ fun ExerciseScreen(id: String, engine: AudioEngine, store: ProgressStore, nav: N
     var metronome by remember { mutableStateOf(true) }
     var session by remember { mutableStateOf<PracticeSession?>(null) }
     var summary by remember { mutableStateOf<Summary?>(null) }
-    var useMic by remember { mutableStateOf(store.useMic) }
     var startAfterPermission by remember { mutableStateOf(false) }
     val (micGranted, requestMic) = rememberMicPermission { ok -> if (ok) startAfterPermission = true }
     val listening = session?.let { !it.demo && it.byPosition } == true
@@ -96,7 +94,7 @@ fun ExerciseScreen(id: String, engine: AudioEngine, store: ProgressStore, nav: N
     }
 
     fun start(demo: Boolean) {
-        val withMic = useMic && !demo
+        val withMic = !demo
         if (withMic && !micGranted) {
             requestMic()
             return
@@ -110,7 +108,7 @@ fun ExerciseScreen(id: String, engine: AudioEngine, store: ProgressStore, nav: N
             rampEnabled = ramp && !demo,
             demo = demo,
             metronome = metronome,
-            calibrationMs = if (withMic) store.micOffsetMs else store.calibrationMs,
+            calibrationMs = if (withMic) store.micOffsetMs else 0,
             byPosition = withMic,
         )
         session = s
@@ -142,10 +140,9 @@ fun ExerciseScreen(id: String, engine: AudioEngine, store: ProgressStore, nav: N
             )
             else -> SetupView(
                 ex, store, startBpm, { startBpm = it }, ramp, { ramp = it }, metronome, { metronome = it },
-                useMic, { useMic = it; store.useMic = it },
                 onListen = { start(demo = true) },
                 onPlay = { start(demo = false) },
-                onCalibrate = { nav.go(if (useMic) Screen.MicSetup else Screen.Calibration) },
+                onCalibrate = { nav.go(Screen.MicSetup) },
             )
         }
     }
@@ -158,7 +155,6 @@ private fun SetupView(
     startBpm: Int, setStartBpm: (Int) -> Unit,
     ramp: Boolean, setRamp: (Boolean) -> Unit,
     metronome: Boolean, setMetronome: (Boolean) -> Unit,
-    useMic: Boolean, setUseMic: (Boolean) -> Unit,
     onListen: () -> Unit,
     onPlay: () -> Unit,
     onCalibrate: () -> Unit,
@@ -180,40 +176,10 @@ private fun SetupView(
             Text("💡 Conseil", color = X.Jaune, style = MaterialTheme.typography.titleMedium)
             Text(ex.tip, style = MaterialTheme.typography.bodyLarge)
         }
-        XCard {
-            Text("Je joue sur…", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = useMic,
-                    onClick = { setUseMic(true) },
-                    label = { Text("🎤 Ma batterie") },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = X.Orange, selectedLabelColor = X.Texte),
-                )
-                FilterChip(
-                    selected = !useMic,
-                    onClick = { setUseMic(false) },
-                    label = { Text("👆 L'écran") },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = X.Orange, selectedLabelColor = X.Texte),
-                )
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                if (useMic) "Le micro du téléphone écoute ta batterie (ou ton pad d'entraînement). Chaque coup est comparé au tempo, quel que soit l'élément frappé."
-                else "Tu tapes sur les pads de l'écran, un pad par élément.",
-                color = X.Texte2,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-        if (useMic && !store.isMicCalibrated) {
+        if (!store.isMicCalibrated) {
             XCard(onClick = onCalibrate) {
                 Text("🎤 Réglage du micro pas encore fait", color = X.Jaune, style = MaterialTheme.typography.titleMedium)
                 Text("Sans lui, l'appli peut rater tes coups ou entendre le clic. Touche ici (1 min).", color = X.Texte2)
-            }
-        } else if (!useMic && !store.isCalibrated) {
-            XCard(onClick = onCalibrate) {
-                Text("⚙️ Calibration des pads pas encore faite", color = X.Jaune, style = MaterialTheme.typography.titleMedium)
-                Text("Le verdict avance / retard sera moins fiable. Touche ici pour la faire (30 s).", color = X.Texte2)
             }
         }
         XCard {
@@ -235,8 +201,7 @@ private fun SetupView(
             ToggleRow("Métronome", "Le clic pendant l'exercice (le décompte reste toujours)", metronome, setMetronome)
         }
         Text(
-            (if (useMic) "Joue quand les notes touchent la barre jaune." else "Frappe les pads quand les notes touchent la barre jaune.") +
-                " D = main droite, G = main gauche.",
+            "Le micro écoute ta batterie : joue quand les notes touchent la barre jaune. D = main droite, G = main gauche.",
             color = X.Texte2,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -359,12 +324,11 @@ private fun RunningView(s: PracticeSession, engine: AudioEngine, mic: MicListene
                 MicHitIndicator(micLevel, micThreshold, flash, Modifier.weight(1f).fillMaxWidth())
             }
         } else {
-            PadGrid(s.exercise.pattern.lanes, now, Modifier.weight(1f)) { lane, t ->
-                engine.playNow(engine.kit.forLane(lane))
-                if (!s.demo && s.countInBeat(System.nanoTime()) == null) {
-                    feedback = s.onHit(lane, t)
-                }
-            }
+            Text(
+                "Écoute le motif et suis les notes sur la portée.",
+                color = X.Texte2,
+                modifier = Modifier.weight(1f).padding(top = 8.dp),
+            )
         }
         Spacer(Modifier.height(10.dp))
         PrimaryButton("■ Arrêter", Modifier.fillMaxWidth(), onStop)

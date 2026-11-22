@@ -139,34 +139,6 @@ class PracticeSession(
         return if (current == null) 0 else if (current.countIn) current.number else null
     }
 
-    /** Un pad a été frappé à [hitNanos] (horloge System.nanoTime). */
-    fun onHit(lane: Lane, hitNanos: Long): Feedback {
-        val adjusted = hitNanos - calibrationMs * 1_000_000L
-        var best: NoteEvent? = null
-        var bestDelta = Long.MAX_VALUE
-        for (n in notes) {
-            if (n.lane != lane || n.result != null) continue
-            val d = adjusted - expectedNanos(n)
-            if (abs(d) < abs(bestDelta)) {
-                best = n; bestDelta = d
-            }
-        }
-        if (best == null || abs(bestDelta) > WINDOW_NANOS) {
-            stats.record(Judgement.EXTRA, 0)
-            return Feedback(Judgement.EXTRA, 0, hitNanos)
-        }
-        val ms = (bestDelta / 1_000_000L).toInt()
-        val j = when {
-            abs(ms) <= PERFECT_MS -> Judgement.PERFECT
-            ms < 0 -> Judgement.EARLY
-            else -> Judgement.LATE
-        }
-        best.deltaMs = ms
-        best.result = j
-        stats.record(j, ms)
-        return Feedback(j, ms, hitNanos)
-    }
-
     /**
      * Un coup entendu au micro à [onsetNanos]. On ne sait pas quel élément a été frappé :
      * le coup valide la position rythmique attendue la plus proche (toutes les notes qui

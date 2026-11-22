@@ -36,7 +36,7 @@ fun ExercisesScreen(store: ProgressStore, nav: Nav) {
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
         ) {
-            if (store.useMic && !store.isMicCalibrated) {
+            if (!store.isMicCalibrated) {
                 XCard(onClick = { nav.go(Screen.MicSetup) }) {
                     Text("🎤 Fais d'abord le réglage du micro", style = MaterialTheme.typography.titleMedium, color = X.Jaune)
                     Text(

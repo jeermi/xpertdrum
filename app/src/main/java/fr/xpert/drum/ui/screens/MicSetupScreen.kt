@@ -305,7 +305,6 @@ fun MicSetupScreen(engine: AudioEngine, store: ProgressStore, nav: Nav) {
                         PrimaryButton("Enregistrer", Modifier.weight(1f)) {
                             store.micThreshold = threshold
                             store.micOffsetMs = offsetMs
-                            store.useMic = true
                             nav.back()
                         }
                     }

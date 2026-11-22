@@ -46,7 +46,8 @@ fun HomeScreen(store: ProgressStore, nav: Nav) {
         Spacer(Modifier.height(24.dp))
         Text(
             buildAnnotatedString {
-                append("Salut, on joue ")
+                val name = store.firstName
+                append(if (name.isEmpty()) "Salut, on joue " else "Salut $name, on joue ")
                 withStyle(SpanStyle(color = X.Jaune)) { append("quoi") }
                 append(" ?")
             },
@@ -72,8 +73,6 @@ fun HomeScreen(store: ProgressStore, nav: Nav) {
 
         SectionLabel("Outils")
         MenuCard("⏱️", "Métronome", "Tempo, mesure et tempo qui monte", null) { nav.go(Screen.Metronome) }
-        Spacer(Modifier.height(12.dp))
-        MenuCard("👆", "Pads libres", "Joue librement sur les pads, avec ou sans clic", null) { nav.go(Screen.Pads) }
 
         SectionLabel("Moi")
         MenuCard(
@@ -86,10 +85,7 @@ fun HomeScreen(store: ProgressStore, nav: Nav) {
             if (store.isMicCalibrated) "Réglé · délai ${store.micOffsetMs} ms" else "À faire avant le premier exercice",
         ) { nav.go(Screen.MicSetup) }
         Spacer(Modifier.height(12.dp))
-        MenuCard(
-            "👆", "Calibration des pads", "Seulement si tu joues sur l'écran",
-            if (store.isCalibrated) "Décalage : ${store.calibrationMs} ms" else null,
-        ) { nav.go(Screen.Calibration) }
+        MenuCard("✏️", "Mon prénom", "Changer le prénom affiché", store.firstName.ifEmpty { null }) { nav.go(Screen.Name) }
         Spacer(Modifier.height(24.dp))
     }
 }

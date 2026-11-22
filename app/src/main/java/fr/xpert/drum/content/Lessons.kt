@@ -98,7 +98,7 @@ object Lessons {
                     Illus.LEFTY, "Et si je suis gaucher ?",
                 ),
                 Block.Advice(
-                    "Pas de batterie sous la main ? Un pad d'entraînement fait très bien l'affaire : le micro de l'appli l'entend aussi. En dépannage, tu peux jouer sur les pads de l'écran.",
+                    "Pas de batterie sous la main ? Un pad d'entraînement fait très bien l'affaire : le micro de l'appli l'entend aussi.",
                     Illus.PRACTICE_PAD, "S'entraîner sans batterie",
                 ),
             ),
