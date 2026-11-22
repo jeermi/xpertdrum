@@ -16,11 +16,26 @@ android {
         versionName = "0.1.0"
     }
 
+    // Clé perso (secrets GitHub XPERT_KEYSTORE_B64 / XPERT_KEYSTORE_PASSWORD, alias « xpertdrum ») :
+    // même signature à chaque build, donc les mises à jour s'installent par-dessus.
+    // Sans clé, on signe avec la clé de debug.
+    val keystorePath = System.getenv("XPERT_KEYSTORE")
+    val keystorePassword = System.getenv("XPERT_KEYSTORE_PASSWORD")
+    signingConfigs {
+        if (keystorePath != null && keystorePassword != null) {
+            create("perso") {
+                storeFile = file(keystorePath)
+                storePassword = keystorePassword
+                keyAlias = "xpertdrum"
+                keyPassword = keystorePassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
-            // APK installé à la main : signé avec la clé de debug tant qu'aucune clé perso n'est fournie.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("perso") ?: signingConfigs.getByName("debug")
         }
     }
 

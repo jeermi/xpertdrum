@@ -3,7 +3,6 @@ name: Build APK
 on:
   push:
     branches: [main]
-    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
@@ -23,15 +22,30 @@ jobs:
       - name: Tests unitaires
         run: ./gradlew --no-daemon testDebugUnitTest
       - name: Compiler l'APK
-        run: ./gradlew --no-daemon assembleRelease
+        env:
+          XPERT_KEYSTORE_B64: ${{ secrets.XPERT_KEYSTORE_B64 }}
+          XPERT_KEYSTORE_PASSWORD: ${{ secrets.XPERT_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$XPERT_KEYSTORE_B64" ]; then
+            echo "$XPERT_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/xpert.jks"
+            export XPERT_KEYSTORE="$RUNNER_TEMP/xpert.jks"
+          fi
+          ./gradlew --no-daemon assembleRelease
       - name: Renommer l'APK
         run: cp app/build/outputs/apk/release/app-release.apk xpert-drum.apk
       - uses: actions/upload-artifact@v4
         with:
           name: xpert-drum-apk
           path: xpert-drum.apk
-      - name: Publier une release (tags v*)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publier l'APK (dernière version sur main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: build-${{ github.run_number }}
+          name: XPert Drum (build ${{ github.run_number }})
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          body: |
+            APK à installer à la main : télécharge **xpert-drum.apk** depuis le téléphone, puis ouvre-le.
+            Commit : ${{ github.sha }}
           files: xpert-drum.apk

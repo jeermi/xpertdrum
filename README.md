@@ -21,7 +21,7 @@ Les sons de batterie sont synthétisés dans l'appli : aucun échantillon extern
 
 ## Installer l'APK
 
-1. Ouvre l'onglet **Actions** du dépôt, choisis le dernier run « Build APK » réussi et télécharge l'artefact `xpert-drum-apk` (ou, pour une version taguée `v*`, l'APK joint à la **Release**).
+1. Depuis le téléphone, ouvre la [dernière release](https://github.com/jeermi/xpertdrum/releases/latest) et télécharge `xpert-drum.apk`. Chaque modification sur `main` en publie une nouvelle automatiquement.
 2. Copie `xpert-drum.apk` sur le téléphone et ouvre-le. Android demande d'autoriser l'installation depuis cette source : accepte.
 3. Les mises à jour s'installent par-dessus, tant que l'APK est signé avec la même clé (voir plus bas).
 
@@ -34,9 +34,17 @@ Prérequis : JDK 17 et le SDK Android (Android Studio suffit).
 ./gradlew assembleRelease     # APK : app/build/outputs/apk/release/app-release.apk
 ```
 
-L'APK « release » est signé avec la clé de debug, ce qui suffit pour une installation manuelle. Attention : la clé de debug
-générée sur GitHub Actions change d'une machine à l'autre ; si Android refuse une mise à jour (« conflit de signature »),
-désinstalle l'ancienne version, ou ajoute une clé perso (à venir).
+Sans clé perso, l'APK est signé avec une clé de debug qui change à chaque build sur GitHub Actions : Android refusera
+alors d'installer une mise à jour par-dessus (« conflit de signature ») et il faudra désinstaller, ce qui efface la progression.
+Pour l'éviter, crée une clé une fois pour toutes et ajoute-la en secrets du dépôt :
+
+```bash
+keytool -genkeypair -keystore xpert.jks -alias xpertdrum -keyalg RSA -keysize 2048 -validity 10000
+base64 -w0 xpert.jks   # à coller dans le secret XPERT_KEYSTORE_B64
+```
+
+puis le mot de passe (le même pour la clé et le magasin) dans le secret `XPERT_KEYSTORE_PASSWORD`
+(Settings > Secrets and variables > Actions). Garde `xpert.jks` en lieu sûr, hors du dépôt.
 
 ## Architecture
 
