@@ -67,6 +67,14 @@ fun ScrollingStaff(session: PracticeSession, nowNanos: Long, modifier: Modifier 
             val color = X.judgement(n.result)
             val y = yAt(n.lane.staffPos)
             drawNote(n.lane, x, y, space, color)
+            if (n.accent) {
+                // Signe d'accent « > » au-dessus de la hampe
+                val ay = maxOf(y - 3.3f * space, 0.5f * space)
+                val aw = space * 0.55f
+                val ah = space * 0.32f
+                drawLine(X.Jaune, Offset(x - aw, ay - ah), Offset(x + aw, ay), lineW * 1.4f)
+                drawLine(X.Jaune, Offset(x + aw, ay), Offset(x - aw, ay + ah), lineW * 1.4f)
+            }
             if (n.sticking != null) {
                 textPaint.color = X.Texte2.toArgb()
                 textPaint.textSize = 13.dp.toPx()

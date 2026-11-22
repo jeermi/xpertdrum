@@ -38,4 +38,36 @@ class ExercisesTest {
         val fill = p.hits.filter { it.lane == Lane.SNARE && it.step >= 28 }
         assertEquals("DGDG", fill.joinToString("") { it.sticking.toString() })
     }
+
+    @Test
+    fun lectureAppliqueeAccents() {
+        val p = Exercises.byId("app-soupirs")!!.pattern
+        val hands = p.hits.filter { it.lane == Lane.SNARE }
+        assertEquals("croches continues sur deux mesures", 16, hands.size)
+        assertEquals(listOf(0, 2, 6, 10, 12, 14), hands.filter { it.accent }.map { it.step })
+        assertTrue(p.gainOf(hands[0]) > p.gainOf(hands[1]))
+        assertEquals(8, p.hits.count { it.lane == Lane.KICK })
+    }
+
+    @Test
+    fun trioletsEtSixHuit() {
+        val t = Exercises.byId("triolets")!!.pattern
+        assertEquals(12, t.stepsPerBar)
+        assertEquals("DGDGDGDGDGDG", t.hits.filter { it.lane == Lane.SNARE }.joinToString("") { it.sticking.toString() })
+        val six = Exercises.byId("six-huit")!!.pattern
+        assertEquals(2, six.beatsPerBar)
+        assertEquals(3, six.stepsPerBeat)
+    }
+
+    @Test
+    fun silencesGardentLeDoigteAlterne() {
+        val p = Exercises.byId("dc-galop")!!.pattern
+        assertEquals("DDGDDGDDGDDG", p.hits.filter { it.lane == Lane.SNARE }.joinToString("") { it.sticking.toString() })
+    }
+
+    @Test
+    fun sansAccentVolumeNormal() {
+        val p = Exercises.byId("rock-1")!!.pattern
+        assertTrue(p.hits.all { p.gainOf(it) == 0.9f })
+    }
 }

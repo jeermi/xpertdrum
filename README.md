@@ -6,7 +6,7 @@ Charte graphique et logo repris de [XPert](https://jeermi.github.io/xpert/).
 ## Ce qu'il y a dedans
 
 - **Les bases** : 6 leçons (s'installer et se tenir, tenir les baguettes, le geste, les éléments de la batterie, compter et lire le rythme, bien travailler).
-- **Exercices** : 17 exercices progressifs (noires, croches alternées, grosse caisse, charleston, coordination, coups doubles, premier rythme rock, variante, paradiddle, premier break, puis 7 exercices d'**indépendance** bras G/D et jambes G/D).
+- **Exercices** : 39 exercices progressifs (noires, croches alternées, grosse caisse, charleston, coordination, coups doubles, premier rythme rock, variante, paradiddle, premier break, puis 7 exercices d'**indépendance** bras G/D et jambes G/D, et 22 exercices de lecture qui suivent la progression de la méthode Dante Agostini vol. 1 : lecture appliquée avec accents, doubles croches et silences, point et syncope, triolets et shuffle, 6/8 et 12/8, partitions de 2 à 4 mesures). Les exercices sont écrits pour l'appli, ils ne recopient pas les pages du livre.
   - partition de batterie qui défile, avec les doigtés D / G ;
   - **l'appli écoute ta vraie batterie au micro** et donne un verdict à chaque coup : **pile**, **en avance** ou **en retard**, avec l'écart en ms (le micro juge le placement rythmique, pas l'élément frappé) ;
   - en dépannage, pads tactiles à l'écran (multi-doigts) ;

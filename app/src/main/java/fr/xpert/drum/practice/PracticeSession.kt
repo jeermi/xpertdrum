@@ -6,7 +6,7 @@ import fr.xpert.drum.audio.Sound
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.abs
 
-class NoteEvent(val frame: Long, val lane: Lane, val sticking: Char?) {
+class NoteEvent(val frame: Long, val lane: Lane, val sticking: Char?, val accent: Boolean = false) {
     @Volatile var result: Judgement? = null
     @Volatile var deltaMs: Int = 0
 }
@@ -106,8 +106,8 @@ class PracticeSession(
             for (h in pattern.hits) {
                 if (h.step / pattern.stepsPerBar != pBar) continue
                 val f = (barStart + (h.step % pattern.stepsPerBar) * stepFrames).toLong()
-                notes.add(NoteEvent(f, h.lane, h.sticking))
-                if (demo) sink(f, kit.forLane(h.lane), 0.9f)
+                notes.add(NoteEvent(f, h.lane, h.sticking, h.accent))
+                if (demo) sink(f, kit.forLane(h.lane), pattern.gainOf(h))
             }
         }
         nextBarFrame += pattern.beatsPerBar * framesPerBeat
