@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Caisse claire blanche + baguettes jaunes, dans la zone sûre (66dp centrés) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- baguettes -->
+    <path android:strokeColor="#FFAB19" android:strokeWidth="3.5" android:strokeLineCap="round"
+        android:pathData="M36,26 L52,44" />
+    <path android:strokeColor="#FFAB19" android:strokeWidth="3.5" android:strokeLineCap="round"
+        android:pathData="M72,26 L56,44" />
+    <!-- corps du tambour -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M33,50 L33,66 A21,7 0 0,0 75,66 L75,50 Z" />
+    <!-- peau (dessus) -->
+    <path android:fillColor="#FFFFFF" android:strokeColor="#1E2054" android:strokeWidth="2"
+        android:pathData="M33,50 A21,7 0 1,0 75,50 A21,7 0 1,0 33,50 Z" />
+    <!-- tirants -->
+    <path android:strokeColor="#1E2054" android:strokeWidth="2" android:pathData="M42,56 L42,72" />
+    <path android:strokeColor="#1E2054" android:strokeWidth="2" android:pathData="M54,57.5 L54,73.5" />
+    <path android:strokeColor="#1E2054" android:strokeWidth="2" android:pathData="M66,56 L66,72" />
+</vector>
