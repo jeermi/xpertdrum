@@ -39,7 +39,8 @@ class RhythmPlayer(
         val stepsTotal = pattern.bars * pattern.stepsPerBar
         for (r in 0 until repeats) {
             for (h in pattern.hits) {
-                sink(start + ((r * stepsTotal + h.step) * stepFrames).toLong(), engine.kit.forLane(h.lane), pattern.gainOf(h))
+                val v = pattern.gainOf(h)
+                sink(start + ((r * stepsTotal + h.step) * stepFrames).toLong(), engine.kit.forLane(h.lane, v), engine.kit.gainFor(v))
             }
         }
     }
