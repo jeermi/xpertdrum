@@ -17,7 +17,7 @@ Charte graphique et logo repris de [XPert](https://jeermi.github.io/xpert/).
 - **Réglage du micro** (1 min) : bruit de la pièce, délai du téléphone mesuré en écoutant son propre clic, seuil de détection adapté à la force de tes coups. Le son est analysé en direct, jamais enregistré.
 - **Progression** : temps de pratique, records par exercice, historique (stocké sur le téléphone uniquement).
 
-Les sons de batterie sont synthétisés dans l'appli : aucun échantillon externe.
+Les sons de batterie sont de **vrais enregistrements** : le kit [Virtuosity Drums](https://github.com/sfzinstruments/virtuosity_drums) de Versilian Studios (batteur Austin McMahon), publié sous licence **CC0** (domaine public, libre de droits, usage commercial compris). Chaque élément a 3 nuances (doux, moyen, fort) et 2 variantes jouées en alternance : un accent sonne vraiment plus fort et plus brillant qu'un coup normal. Crédits et licence : `app/src/main/assets/kit/CREDITS.txt`. Les fichiers sont fabriqués par `tools/build_kit.py` (mélange des micros grosse caisse, caisse claire, overheads et salle). Le clic du métronome reste synthétisé.
 
 ## Installer l'APK
 

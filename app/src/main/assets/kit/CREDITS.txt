@@ -1,0 +1,19 @@
+Sons de batterie de XPert Drum
+==============================
+
+Kit : Virtuosity Drums (version beta 0.924)
+Auteur : Versilian Studios (Samuel Gossner), https://versilian-studios.com/virtuosity-drums/
+Batteur : Austin McMahon. Enregistré chez Virtuosity Musical Instruments, Boston (MA).
+Source utilisée : https://github.com/sfzinstruments/virtuosity_drums
+Licence : CC0 1.0 Universel (domaine public), texte complet dans LICENSE-CC0.txt.
+          Aucune obligation d'attribution ; ce crédit est donné par courtoisie.
+
+Ce que l'appli en a fait (script tools/build_kit.py du dépôt) :
+- pour chaque coup, mélange des micros grosse caisse, caisse claire, overheads
+  et salle (salle à mi-volume), passé en mono 48 kHz 16 bits ;
+- 3 nuances (doux, moyen, fort) x 2 variantes par élément ;
+- grosse caisse (snares on), caisse claire (coup au centre), charleston fermé,
+  charleston au pied, tom aigu (centre), crash, ride ;
+- silence initial retiré, durée raccourcie avec un fondu, volume ajusté.
+
+Le clic du métronome est synthétisé par l'appli.

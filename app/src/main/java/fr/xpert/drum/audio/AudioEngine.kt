@@ -50,7 +50,7 @@ class AudioEngine(context: Context) {
         sampleRate = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)?.toIntOrNull() ?: 48000
         burst = (am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)?.toIntOrNull() ?: 256)
             .coerceIn(64, 1024)
-        kit = DrumKit(sampleRate)
+        kit = DrumKit(sampleRate, context.assets)
     }
 
     @Synchronized
@@ -188,7 +188,9 @@ class AudioEngine(context: Context) {
             }
             for (i in buf.indices) {
                 val x = buf[i] * 0.8f
-                buf[i] = if (x > 1f) 1f else if (x < -1f) -1f else x
+                // Limiteur doux : au-delà de 0,8 on arrondit au lieu d'écrêter net.
+                val a = kotlin.math.abs(x)
+                buf[i] = if (a <= 0.8f) x else kotlin.math.sign(x) * (0.8f + 0.2f * kotlin.math.tanh((a - 0.8f) / 0.2f))
             }
 
             val n = t.write(buf, 0, burst, AudioTrack.WRITE_BLOCKING)

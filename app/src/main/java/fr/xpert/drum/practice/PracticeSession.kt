@@ -107,7 +107,10 @@ class PracticeSession(
                 if (h.step / pattern.stepsPerBar != pBar) continue
                 val f = (barStart + (h.step % pattern.stepsPerBar) * stepFrames).toLong()
                 notes.add(NoteEvent(f, h.lane, h.sticking, h.accent))
-                if (demo) sink(f, kit.forLane(h.lane), pattern.gainOf(h))
+                if (demo) {
+                    val v = pattern.gainOf(h)
+                    sink(f, kit.forLane(h.lane, v), kit.gainFor(v))
+                }
             }
         }
         nextBarFrame += pattern.beatsPerBar * framesPerBeat
