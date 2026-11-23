@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -53,6 +54,19 @@ private val SHELL = Color(0xFF3B3E8C)
 private val HEAD = Color(0xFFDADBF0)
 private val CYM = Color(0xFFD9B44A)
 private val SKIN = Color(0xFFF1C7A5)
+private val SKIN_L = Color(0xFFF8DCC4)
+private val SKIN_T = Color(0xFFEAB995)
+private val SKIN_D = Color(0xFFD9A07E)
+private val SKIN_DD = Color(0xFFB97E5E)
+private val SKIN_E = Color(0xFF8E5A40)
+private val NAIL = Color(0xFFF9E3D6)
+private val HAIR = Color(0xFF5B3A26)
+private val SHIRT = Color(0xFFE8501E)
+private val SHIRT_D = Color(0xFFC63F14)
+private val PANTS = Color(0xFF7A80C4)
+private val PANTS_D = Color(0xFF555A9E)
+private val SHOE = Color(0xFFE9E9F2)
+private val SOLE = Color(0xFF8A8FC9)
 private val DIM = Color(0xFF34357A)
 
 /**
@@ -160,6 +174,101 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
         oval(x2 + cos(a) * 0.6f, y2 + sin(a) * 0.6f, w * 0.65f, w * 0.65f, c, fill = true)
     }
 
+    // ------------------------------------------------------------------ Formes « réalistes »
+
+    /** Segment de membre effilé de a (largeur wa) à b (largeur wb), extrémités arrondies. */
+    fun limb(ax: Float, ay: Float, bx: Float, by: Float, wa: Float, wb: Float, c: Color) {
+        val dx = bx - ax
+        val dy = by - ay
+        val len = kotlin.math.sqrt(dx * dx + dy * dy).coerceAtLeast(0.01f)
+        val nx = -dy / len
+        val ny = dx / len
+        val p = Path()
+        p.moveTo((ax + nx * wa / 2) * u, (ay + ny * wa / 2) * u)
+        p.lineTo((bx + nx * wb / 2) * u, (by + ny * wb / 2) * u)
+        p.lineTo((bx - nx * wb / 2) * u, (by - ny * wb / 2) * u)
+        p.lineTo((ax - nx * wa / 2) * u, (ay - ny * wa / 2) * u)
+        p.close()
+        d.drawPath(p, c)
+        d.drawCircle(c, wa / 2 * u, o(ax, ay))
+        d.drawCircle(c, wb / 2 * u, o(bx, by))
+    }
+
+    /** Membre avec un fin contour plus foncé (doigts, pouce) pour bien les distinguer. */
+    fun flimb(ax: Float, ay: Float, bx: Float, by: Float, wa: Float, wb: Float, c: Color, edge: Color = SKIN_DD) {
+        limb(ax, ay, bx, by, wa + 0.9f, wb + 0.9f, edge)
+        limb(ax, ay, bx, by, wa, wb, c)
+    }
+
+    /** Membre avec contour de mise en évidence (jaune) quand [hl]. */
+    fun limbHl(ax: Float, ay: Float, bx: Float, by: Float, wa: Float, wb: Float, c: Color, hl: Boolean) {
+        if (hl) limb(ax, ay, bx, by, wa + 2.4f, wb + 2.4f, Y)
+        limb(ax, ay, bx, by, wa, wb, c)
+    }
+
+    /** Forme pleine passant par des points (lissée par des courbes quadratiques). */
+    fun blob(c: Color, vararg pts: Float) = blobE(c, null, *pts)
+
+    fun blobE(c: Color, edge: Color?, vararg pts: Float) {
+        val n = pts.size / 2
+        val p = Path()
+        fun mx(i: Int) = (pts[(2 * i) % pts.size] + pts[(2 * i + 2) % pts.size]) / 2f
+        fun my(i: Int) = (pts[(2 * i + 1) % pts.size] + pts[(2 * i + 3) % pts.size]) / 2f
+        p.moveTo(mx(0) * u, my(0) * u)
+        for (k in 1..n) {
+            val i = k % n
+            p.quadraticBezierTo(pts[2 * i] * u, pts[2 * i + 1] * u, mx(i) * u, my(i) * u)
+        }
+        p.close()
+        d.drawPath(p, c)
+        if (edge != null) d.drawPath(p, edge, style = Stroke(0.7f * u))
+    }
+
+    /** Tête de profil tournée vers la droite (cheveux, oreille, nez, œil). */
+    fun headSide(hx: Float, hy: Float, r: Float = 6f) {
+        circle(hx - r * 0.12f, hy - r * 0.1f, r * 1.02f, HAIR, fill = true)
+        blob(
+            SKIN,
+            hx - r * 0.35f, hy - r * 0.45f,
+            hx + r * 0.75f, hy - r * 0.75f,
+            hx + r * 1.02f, hy - r * 0.05f,
+            hx + r * 0.95f, hy + r * 0.7f,
+            hx + r * 0.2f, hy + r * 1.08f,
+            hx - r * 0.55f, hy + r * 0.6f,
+        )
+        // nez et menton
+        poly(hx + r * 0.95f, hy - r * 0.2f, hx + r * 1.25f, hy + r * 0.25f, hx + r * 0.95f, hy + r * 0.32f, c = SKIN, fill = true)
+        // mèche de cheveux sur le front
+        blob(HAIR, hx - r * 0.9f, hy - r * 0.6f, hx + r * 0.2f, hy - r * 1.15f, hx + r * 0.9f, hy - r * 0.7f, hx + r * 0.1f, hy - r * 0.45f)
+        oval(hx - r * 0.15f, hy + r * 0.15f, r * 0.2f, r * 0.3f, SKIN_D, fill = true) // oreille
+        circle(hx + r * 0.6f, hy - r * 0.12f, r * 0.11f, X.Fond, fill = true) // œil
+    }
+
+    /** Tête de face. */
+    fun headFront(hx: Float, hy: Float, r: Float = 6.5f) {
+        circle(hx, hy - r * 0.08f, r * 1.04f, HAIR, fill = true)
+        oval(hx - r * 0.98f, hy + r * 0.15f, r * 0.2f, r * 0.32f, SKIN_D, fill = true)
+        oval(hx + r * 0.98f, hy + r * 0.15f, r * 0.2f, r * 0.32f, SKIN_D, fill = true)
+        oval(hx, hy + r * 0.15f, r * 0.88f, r * 0.98f, SKIN, fill = true)
+        blob(HAIR, hx - r * 0.95f, hy - r * 0.2f, hx - r * 0.6f, hy - r * 1.1f, hx + r * 0.7f, hy - r * 1.1f, hx + r * 0.95f, hy - r * 0.2f, hx, hy - r * 0.55f)
+        circle(hx - r * 0.33f, hy + r * 0.1f, r * 0.1f, X.Fond, fill = true)
+        circle(hx + r * 0.33f, hy + r * 0.1f, r * 0.1f, X.Fond, fill = true)
+        line(hx - r * 0.25f, hy + r * 0.62f, hx + r * 0.25f, hy + r * 0.62f, SKIN_D, 0.6f)
+    }
+
+    /** Petit poing qui tient la baguette, vu de côté (pouce dessus, doigts enroulés dessous). */
+    fun fistSide(hx: Float, hy: Float, angleDeg: Float, s: Float = 1f) {
+        d.rotate(angleDeg, o(hx, hy)) {
+            // doigts repliés sous la baguette
+            blob(SKIN_D, hx - 3.2f * s, hy - 0.5f * s, hx + 1.8f * s, hy - 0.8f * s, hx + 2.6f * s, hy + 2.6f * s, hx - 2.6f * s, hy + 3f * s)
+            for (k in 0..2) line(hx - 2f * s + k * 1.4f * s, hy + 0.6f * s, hx - 2.2f * s + k * 1.4f * s, hy + 2.6f * s, SKIN_DD, 0.35f * s)
+            // dos de la main
+            blob(SKIN, hx - 4.4f * s, hy - 1.6f * s, hx - 1f * s, hy - 3.6f * s, hx + 2.2f * s, hy - 2.4f * s, hx + 1.6f * s, hy + 0.4f * s, hx - 3.6f * s, hy + 1f * s)
+            // pouce posé le long de la baguette
+            limb(hx - 2.6f * s, hy - 1.6f * s, hx + 2.6f * s, hy - 0.9f * s, 1.5f * s, 1.1f * s, SKIN_T)
+        }
+    }
+
     // ------------------------------------------------------------------ Batteur de profil
 
     class Pose(
@@ -175,15 +284,18 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
     )
 
     fun throne(seatHighlight: Boolean = false) {
-        rect(31f, 52f, 26f, 4f, M, fill = true, r = 2f)
-        if (seatHighlight) rect(44f, 51.5f, 13f, 5f, O, fill = true, r = 2f)
-        line(44f, 56f, 44f, 80f, M, 1.6f)
+        rect(31f, 51f, 26f, 5f, Color(0xFF2A2A40), fill = true, r = 2.5f)
+        rect(31f, 51f, 26f, 2f, Color(0xFF4A4A6A), fill = true, r = 1f)
+        if (seatHighlight) rect(44f, 50.5f, 13f, 6f, O, fill = true, r = 2.5f)
+        line(44f, 56f, 44f, 80f, M, 1.8f)
         line(44f, 80f, 35f, 84f, M, 1.4f)
         line(44f, 80f, 53f, 84f, M, 1.4f)
     }
 
     fun snareSide(x: Float = 80f, top: Float = 47f, highlight: Boolean = false) {
         rect(x, top, 26f, 7f, if (highlight) O else SHELL, fill = true, r = 1f)
+        rect(x, top + 0.8f, 26f, 1.2f, Color(0xFFB8BCE0).copy(alpha = 0.5f), fill = true, r = 0.5f)
+        rect(x, top + 5f, 26f, 1.2f, Color(0xFFB8BCE0).copy(alpha = 0.5f), fill = true, r = 0.5f)
         line(x - 0.5f, top, x + 26.5f, top, HEAD, 1.6f)
         line(x + 13f, top + 7f, x + 13f, 80f, M, 1.2f)
         line(x + 13f, 80f, x + 6f, 84f, M, 1.2f)
@@ -198,25 +310,72 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
 
     fun pedal(heelUp: Boolean = false) {
         // semelle de pédale inclinée
-        poly(74f, 82f, 100f, 78f, c = M, w = 1.6f)
+        poly(74f, 82f, 100f, 78f, c = M, w = 1.8f)
         line(100f, 78f, 112f, 64f, M, 1.2f)
         // mailloche
         circle(113.5f, 62.5f, 2.2f, HEAD, fill = true)
     }
 
-    fun drummer(p: Pose = Pose(), c: Color = W, armColor: Color = c, thighColor: Color = c, backColor: Color = c) {
+    /** Chaussure de profil : talon en (hx,hy), pointe en (tx,ty). */
+    fun shoe(hx: Float, hy: Float, tx: Float, ty: Float) {
+        val dx = tx - hx
+        val dy = ty - hy
+        val len = kotlin.math.sqrt(dx * dx + dy * dy)
+        val nx = dy / len
+        val ny = -dx / len // normale vers le haut
+        blob(
+            SHOE,
+            hx - dx * 0.06f, hy - dy * 0.06f,
+            hx + nx * 6.6f, hy + ny * 6.6f,
+            hx + dx * 0.32f + nx * 7.4f, hy + dy * 0.32f + ny * 7.4f,
+            hx + dx * 0.66f + nx * 4.4f, hy + dy * 0.66f + ny * 4.4f,
+            tx + nx * 2.8f, ty + ny * 2.8f,
+            tx + dx * 0.04f, ty + dy * 0.04f,
+        )
+        line(hx - dx * 0.02f, hy - dy * 0.02f, tx, ty, SOLE, 1.3f)
+    }
+
+    /**
+     * Batteur de profil (tourné vers la droite), en formes pleines : jambe, chaussure,
+     * buste, tête, bras ; [armHl], [thighHl], [backHl] entourent la partie à regarder.
+     */
+    fun drummer(p: Pose = Pose(), armHl: Boolean = false, thighHl: Boolean = false, backHl: Boolean = false) {
+        // bras gauche (derrière, plus sombre)
+        limb(p.shoulder.x - 1f, p.shoulder.y + 1f, p.elbow.x + 1f, p.elbow.y + 1f, 5f, 4.2f, SHIRT_D)
+        limb(p.elbow.x + 1f, p.elbow.y + 1f, p.hand.x + 3f, p.hand.y - 1f, 3.8f, 2.8f, SKIN_D)
+        stick(p.hand.x + 2f, p.hand.y - 1.5f, p.stickTip.x + 4f, p.stickTip.y - 3f, 1.3f, WOOD.copy(alpha = 0.7f))
         // jambe
-        line(p.hip.x, p.hip.y, p.knee.x, p.knee.y, thighColor, 3.2f)
-        line(p.knee.x, p.knee.y, p.ankle.x, p.ankle.y, c, 3f)
-        line(p.ankle.x, p.ankle.y, p.toe.x, p.toe.y, c, 2.6f)
-        // tronc et tête
-        line(p.hip.x, p.hip.y, p.shoulder.x, p.shoulder.y, backColor, 3.6f)
-        circle(p.shoulder.x + 2f, p.shoulder.y - 9f, 6f, c, fill = true)
-        // bras
-        line(p.shoulder.x, p.shoulder.y, p.elbow.x, p.elbow.y, armColor, 2.6f)
-        line(p.elbow.x, p.elbow.y, p.hand.x, p.hand.y, armColor, 2.4f)
-        circle(p.hand.x, p.hand.y, 1.8f, SKIN, fill = true)
-        stick(p.hand.x - 3f, p.hand.y - 1f, p.stickTip.x, p.stickTip.y, 1.6f)
+        limbHl(p.hip.x - 1f, p.hip.y, p.knee.x, p.knee.y, 8f, 5.6f, PANTS, thighHl)
+        limb(p.knee.x, p.knee.y, p.ankle.x, p.ankle.y, 5.4f, 3.8f, PANTS)
+        shoe(p.ankle.x - 1f, p.ankle.y + 1f, p.toe.x + 2f, p.toe.y)
+        // buste (dos et torse) et cou
+        val bx = p.shoulder.x - p.hip.x
+        val by = p.shoulder.y - p.hip.y
+        val bl = kotlin.math.sqrt(bx * bx + by * by)
+        val fx = -by / bl // vers l'avant
+        val fy = bx / bl
+        val f = if (fx < 0) -1f else 1f
+        if (backHl) limb(p.hip.x - 2.5f, p.hip.y - 1f, p.shoulder.x - 2f, p.shoulder.y + 1f, 4.6f, 4.6f, Y)
+        limb(p.shoulder.x + 2f, p.shoulder.y - 2f, p.shoulder.x + 3f, p.shoulder.y - 6f, 3.6f, 3.4f, SKIN_D)
+        blob(
+            SHIRT,
+            p.hip.x - 3.5f, p.hip.y + 1f,
+            p.hip.x - 3.2f + bx * 0.5f, p.hip.y + by * 0.5f,
+            p.shoulder.x - 2.5f, p.shoulder.y - 1f,
+            p.shoulder.x + 2f, p.shoulder.y - 3.4f,
+            p.shoulder.x + f * fx * 9f, p.shoulder.y + f * fy * 9f + 3f,
+            p.hip.x + bx * 0.45f + f * fx * 9.5f, p.hip.y + by * 0.45f + f * fy * 9.5f,
+            p.hip.x + f * fx * 7f, p.hip.y + 1.5f,
+        )
+        // ceinture
+        limb(p.hip.x - 3f, p.hip.y + 0.5f, p.hip.x + f * fx * 7f, p.hip.y + 1f, 1.6f, 1.6f, PANTS_D)
+        headSide(p.shoulder.x + 4f, p.shoulder.y - 10f)
+        // bras droit (devant)
+        limbHl(p.shoulder.x, p.shoulder.y + 1f, p.elbow.x, p.elbow.y, 5.6f, 4.6f, SHIRT_D, armHl)
+        limbHl(p.elbow.x, p.elbow.y, p.hand.x, p.hand.y, 4.2f, 3f, SKIN, armHl)
+        stick(p.hand.x - 3f, p.hand.y - 0.3f, p.stickTip.x, p.stickTip.y, 1.6f)
+        val ang = Math.toDegrees(atan2(p.stickTip.y - p.hand.y, p.stickTip.x - p.hand.x).toDouble()).toFloat()
+        fistSide(p.hand.x, p.hand.y, ang, 0.9f)
     }
 
     fun sideScene(
@@ -233,28 +392,45 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
         pedal()
         throne(seatHighlight)
         snareSide(highlight = snareHighlight)
-        drummer(pose, W, armColor, thighColor, backColor)
+        drummer(pose, armHl = armColor != W, thighHl = thighColor != W, backHl = backColor != W)
     }
 
     // ------------------------------------------------------------------ Batteur de face
 
     fun frontFigure(cx: Float, elbowsOut: Boolean, shouldersUp: Boolean = false, c: Color = W) {
-        val sy = if (shouldersUp) 24f else 28f
-        circle(cx, 14f, 7f, c, fill = true)
-        // épaules et tronc
-        line(cx - 13f, sy, cx + 13f, sy, c, 3f)
-        poly(cx - 8f, sy + 1f, cx - 6f, 62f, cx + 6f, 62f, cx + 8f, sy + 1f, c = c, w = 2.4f)
+        val sy = if (shouldersUp) 23f else 27f
+        // tabouret et jambes (cuisses vues de face, en raccourci)
+        // cou et tête
+        limb(cx, sy - 2f, cx, sy - 7f, 4.6f, 4.2f, SKIN_D)
+        headFront(cx, if (shouldersUp) 12.5f else 13.5f)
+        // buste : épaules arrondies, taille plus fine
+        blob(
+            SHIRT,
+            cx - 13.5f, sy + 2f,
+            cx - 11f, sy - 1.5f,
+            cx, sy - 2.5f,
+            cx + 11f, sy - 1.5f,
+            cx + 13.5f, sy + 2f,
+            cx + 10f, sy + 18f,
+            cx + 8.5f, 63f,
+            cx - 8.5f, 63f,
+            cx - 10f, sy + 18f,
+        )
+        if (shouldersUp) {
+            // trapèzes contractés
+            limb(cx - 4f, sy - 1.5f, cx - 11f, sy + 0.5f, 3.4f, 4f, SHIRT_D)
+            limb(cx + 4f, sy - 1.5f, cx + 11f, sy + 0.5f, 3.4f, 4f, SHIRT_D)
+        }
         // bras
-        val ex = if (elbowsOut) 24f else 15f
-        val ey = if (elbowsOut) 42f else 46f
-        line(cx - 13f, sy, cx - ex, ey, c, 2.6f)
-        line(cx - ex, ey, cx - 6f, 56f, c, 2.4f)
-        line(cx + 13f, sy, cx + ex, ey, c, 2.6f)
-        line(cx + ex, ey, cx + 6f, 56f, c, 2.4f)
-        circle(cx - 6f, 56f, 1.8f, SKIN, fill = true)
-        circle(cx + 6f, 56f, 1.8f, SKIN, fill = true)
-        stick(cx - 6f, 56f, cx - 1f, 66f, 1.4f)
-        stick(cx + 6f, 56f, cx + 1f, 66f, 1.4f)
+        val ex = if (elbowsOut) 25f else 13.5f
+        val ey = if (elbowsOut) 40f else 45f
+        for (sgn in listOf(-1f, 1f)) {
+            limb(cx + sgn * 12f, sy + 1.5f, cx + sgn * ex, ey, 5.4f, 4.6f, SHIRT_D)
+            limb(cx + sgn * ex, ey, cx + sgn * 6.5f, 56f, 4.2f, 3.2f, SKIN)
+            stick(cx + sgn * 6.5f, 54f, cx + sgn * 1.5f, 66f, 1.4f)
+            oval(cx + sgn * 6.3f, 56.3f, 2.4f, 2.1f, SKIN, fill = true)
+            oval(cx + sgn * 5.6f, 57.8f, 1.8f, 1.1f, SKIN_D, fill = true)
+        }
         // caisse claire vue de face
         rect(cx - 13f, 66f, 26f, 6f, SHELL, fill = true)
         line(cx - 13.5f, 66f, cx + 13.5f, 66f, HEAD, 1.4f)
@@ -313,22 +489,96 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
 
     // ------------------------------------------------------------------ Main et baguette
 
-    /** Main qui tient la baguette (vue de côté), pivot en (px, py). */
-    fun hand(px: Float, py: Float, tight: Boolean = false) {
-        // paume
-        oval(px - 2f, py + 4f, 9f, 6.5f, SKIN, fill = true)
-        // doigts enroulés (arcs) sous la baguette
-        val gap = if (tight) 0.2f else 1.6f
-        for (k in 0..2) {
-            val fx = px + 4f + k * 5f
-            oval(fx, py + 2.6f + gap, 2.6f, 3.4f, SKIN, fill = true)
+    /**
+     * Gros plan d'une main droite qui tient la baguette, vue de côté (côté pouce).
+     * Le point d'appui (pouce / index) est en (px, py) ; la baguette part vers la droite.
+     * [butt] = longueur qui dépasse derrière, [tip] = longueur devant, [s] = échelle.
+     */
+    fun grip(
+        px: Float, py: Float, s: Float = 1f,
+        tight: Boolean = false,
+        butt: Float = 34f, tip: Float = 80f,
+        angleDeg: Float = 0f,
+        fulcrum: Boolean = false,
+        forearm: Boolean = true,
+    ) {
+        fun X(dx: Float) = px + dx * s
+        fun Yy(dy: Float) = py + dy * s
+        d.rotate(angleDeg, o(px, py)) {
+            // avant-bras
+            if (forearm) {
+                limb(X(-64f), Yy(-1f), X(-22f), Yy(-6f), 15f * s, 12.5f * s, SKIN_D)
+                limb(X(-64f), Yy(-4.5f), X(-24f), Yy(-9f), 5f * s, 3f * s, SKIN.copy(alpha = 0.55f))
+            }
+            // majeur, annulaire, auriculaire : derrière la baguette, enroulés dessous
+            val curl = if (tight) 0.75f else 1f
+            for (k in 2 downTo 0) {
+                val bx = -5.5f - 4.6f * k
+                val by = -4f + 0.9f * k
+                val c = if (k == 0) SKIN_D else SKIN_DD
+                flimb(X(bx), Yy(by), X(bx + 5.4f * curl), Yy(3.2f), 4.8f * s, 4.3f * s, c, SKIN_E)
+                flimb(X(bx + 5.4f * curl), Yy(3.2f), X(bx + 3.2f * curl), Yy(3.2f + 5.2f * curl), 4.3f * s, 3.9f * s, c, SKIN_E)
+                flimb(X(bx + 3.2f * curl), Yy(3.2f + 5.2f * curl), X(bx - 1.2f), Yy(3.6f + 6.2f * curl), 3.9f * s, 3.4f * s, c, SKIN_E)
+            }
+            // baguette
+            stick(X(-butt), Yy(0f), X(tip), Yy(0f), 3.4f * s)
+            // dos de la main
+            blobE(
+                SKIN, SKIN_DD,
+                X(-27f), Yy(-10.5f),
+                X(-13f), Yy(-12.5f),
+                X(-3f), Yy(-11.5f),
+                X(2.5f), Yy(-6.5f),
+                X(-3f), Yy(-1.6f),
+                X(-16f), Yy(2.5f),
+                X(-27f), Yy(2.5f),
+            )
+            // reflets des tendons
+            for (k in 0..2) line(X(-22f + k * 1.2f), Yy(-9.5f + k * 1.6f), X(-6f + k * 0.8f), Yy(-11f + k * 2f), SKIN_L, 0.5f * s)
+            // index : enroulé autour de la baguette (2e phalange sous la baguette)
+            flimb(X(3.8f), Yy(5.6f), X(-1.5f), Yy(7.2f), 4.5f * s, 3.9f * s, SKIN_T)
+            flimb(X(4.6f), Yy(-0.8f), X(3.8f), Yy(5.6f), 4.9f * s, 4.5f * s, SKIN)
+            flimb(X(-3f), Yy(-6.5f), X(4.6f), Yy(-0.8f), 5.4f * s, 4.9f * s, SKIN)
+            line(X(2.6f), Yy(-2.4f), X(6.2f), Yy(-0.6f), SKIN_DD, 0.45f * s)
+            line(X(2f), Yy(4.6f), X(5.4f), Yy(5.4f), SKIN_DD, 0.45f * s)
+            // pouce : à plat le long de la baguette
+            flimb(X(-17f), Yy(-8.5f), X(-6f), Yy(-4f), 7f * s, 5.8f * s, SKIN_T)
+            flimb(X(-6f), Yy(-4f), X(3.2f), Yy(-2.6f), 5.6f * s, 4.6f * s, SKIN_T)
+            oval(X(2f), Yy(-3.6f), 2f * s, 1.1f * s, NAIL, fill = true)
+            line(X(-6.5f), Yy(-5.6f), X(-5.2f), Yy(-2.6f), SKIN_DD, 0.45f * s)
+            if (tight) {
+                // phalanges blanchies + traits de tension
+                circle(X(4.6f), Yy(-0.8f), 1.2f * s, Color.White.copy(alpha = 0.6f), fill = true)
+                circle(X(-3f), Yy(-6.5f), 1.2f * s, Color.White.copy(alpha = 0.6f), fill = true)
+                for (k in 0..2) {
+                    val a = (-140f + k * 30f) * PI.toFloat() / 180f
+                    line(X(-6f + 15f * cos(a)), Yy(-6f + 15f * sin(a)), X(-6f + 19f * cos(a)), Yy(-6f + 19f * sin(a)), R, 1.1f)
+                }
+            }
+            if (fulcrum) {
+                circle(X(3f), Yy(0f), 3.6f * s, Y, w = 1.3f)
+            }
         }
-        // index enroulé
-        oval(px + 0.5f, py + 2.2f, 3f, 3f, SKIN, fill = true)
-        // pouce à plat sur le côté
-        oval(px - 1f, py - 2.2f, 5.5f, 2f, Color(0xFFE0AE88), fill = true)
-        if (tight) {
-            for (k in 0..2) line(px - 12f + k * 2f, py - 8f + k * 1f, px - 9f + k * 2f, py - 6f + k * 1f, R, 1f)
+    }
+
+    /**
+     * Poing vu de l'avant (comme si la baguette venait vers toi) : sert à montrer
+     * l'orientation de la main (allemande, américaine, française). 0° = dos de la main vers le haut.
+     */
+    fun fistFront(cx: Float, cy: Float, angleDeg: Float, s: Float = 1f) {
+        d.rotate(angleDeg, o(cx, cy)) {
+            // avant-bras en arrière-plan
+            oval(cx, cy + 2f * s, 9f * s, 7f * s, SKIN_DD, fill = true)
+            // dos de la main (vu de face : bande des articulations)
+            blob(SKIN, cx - 11f * s, cy - 3f * s, cx - 9f * s, cy - 8f * s, cx + 9f * s, cy - 8f * s, cx + 11f * s, cy - 3f * s, cx + 10f * s, cy + 3f * s, cx - 10f * s, cy + 3f * s)
+            // 4 doigts repliés (vus du bout)
+            for (k in 0..3) {
+                val fx = cx + (-6.6f + k * 4.4f) * s
+                oval(fx, cy + 3.6f * s, 2.3f * s, 3.2f * s, SKIN_D, fill = true)
+                line(fx - 1.2f * s, cy + 3.4f * s, fx + 1.2f * s, cy + 3.4f * s, SKIN_DD, 0.4f * s)
+            }
+            // pouce sur le côté intérieur
+            limb(cx - 10f * s, cy + 1f * s, cx - 6f * s, cy + 6.5f * s, 4.6f * s, 3.8f * s, SKIN_T)
         }
     }
 
@@ -498,62 +748,56 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
                 arrow(57f, 68f, 57f, 52f, Y, 1.2f)
             }
             Illus.STICK_BOUNCE -> {
-                // pad
-                oval(118f, 70f, 26f, 4f, Color(0xFF555A9E), fill = true)
-                stick(30f, 40f, 112f, 66f, 2.6f)
-                // pince pouce-index
-                oval(56f, 45f, 3.6f, 2.6f, SKIN, fill = true)
-                oval(56f, 51f, 3.6f, 2.6f, SKIN, fill = true)
-                // rebonds
-                arc(116f, 60f, 6f, 180f, 180f, Y, 1.2f)
-                arc(124f, 62f, 4f, 180f, 180f, Y, 1f)
-                arc(130f, 64f, 2.5f, 180f, 180f, Y, 0.8f)
-                text("pince entre pouce et index,", 60f, 14f, W, 5.6f, bold = true)
-                text("laisse rebondir", 60f, 21f, W, 5.6f, bold = true)
-                text("ça rebondit longtemps = bon endroit", 98f, 84f, Y, 5f)
+                oval(126f, 72f, 26f, 4f, Color(0xFF555A9E), fill = true)
+                oval(126f, 71f, 18f, 2.4f, Color(0xFF8A8FC9), fill = true)
+                grip(46f, 40f, 0.78f, angleDeg = 19f, tip = 96f, butt = 30f, fulcrum = true)
+                arc(122f, 62f, 6f, 180f, 180f, Y, 1.2f)
+                arc(132f, 64f, 4f, 180f, 180f, Y, 1f)
+                arc(140f, 66f, 2.5f, 180f, 180f, Y, 0.8f)
+                text("pince entre pouce et index,", 104f, 12f, W, 5.6f, bold = true)
+                text("laisse rebondir", 104f, 19f, W, 5.6f, bold = true)
+                text("ça rebondit longtemps = bon endroit", 80f, 86f, Y, 5f)
             }
             Illus.FULCRUM_SLIDE -> {
-                stick(12f, 46f, 148f, 46f, 3.2f)
-                oval(57f, 42.5f, 4f, 2.6f, SKIN, fill = true)
-                oval(57f, 49.5f, 4f, 2.6f, SKIN, fill = true)
-                arrow(44f, 30f, 70f, 30f, Y, 1.4f, both = true)
-                text("fais glisser de quelques mm", 80f, 18f, Y, 5.8f, bold = true)
-                text("jusqu'au rebond maximal : c'est ton pivot", 80f, 68f, W, 5.4f)
+                grip(70f, 48f, fulcrum = true)
+                arrow(58f, 26f, 82f, 26f, Y, 1.4f, both = true)
+                text("fais glisser de quelques mm", 80f, 12f, Y, 5.8f, bold = true)
+                text("jusqu'au rebond maximal : c'est ton pivot", 80f, 80f, W, 5.4f)
             }
             Illus.THUMB_INDEX -> {
-                stick(14f, 46f, 148f, 46f, 3f)
-                hand(58f, 46f)
-                text("pouce à plat sur le côté", 44f, 20f, Y, 5.6f, bold = true)
-                arrow(40f, 25f, 55f, 42f, Y, 1.1f)
-                text("index enroulé, pas pointé dessus", 154f, 72f, Y, 5.6f, bold = true, align = 2)
-                arrow(96f, 68f, 61f, 51f, Y, 1.1f)
+                grip(66f, 46f, fulcrum = true)
+                text("pouce à plat, le long", 116f, 12f, Y, 5.6f, bold = true)
+                text("de la baguette", 116f, 19f, Y, 5.6f, bold = true)
+                arrow(100f, 22f, 64f, 41f, Y, 1.1f)
+                text("index enroulé dessous,", 116f, 70f, Y, 5.6f, bold = true)
+                text("pas pointé dessus", 116f, 77f, Y, 5.6f, bold = true)
+                arrow(96f, 68f, 72f, 52f, Y, 1.1f)
             }
             Illus.FINGERS_WRAP -> {
-                stick(14f, 40f, 148f, 40f, 3f)
-                hand(58f, 40f)
-                text("3 doigts refermés souplement :", 80f, 66f, W, 5.6f, bold = true)
-                text("ils guident, ils ne serrent pas", 80f, 74f, W, 5.6f)
-                arc(70f, 45f, 9f, 20f, 120f, G, 1f)
+                grip(66f, 40f)
+                arc(56f, 46f, 13f, 20f, 140f, G, 1.3f)
+                text("3 doigts refermés souplement :", 80f, 72f, W, 5.6f, bold = true)
+                text("ils guident, ils ne serrent pas", 80f, 80f, W, 5.6f)
             }
             Illus.BUTT_OUT -> {
-                stick(30f, 46f, 148f, 46f, 3f)
-                hand(58f, 46f)
-                arrow(44f, 30f, 32f, 42f, Y, 1.2f)
-                text("le talon dépasse un peu de la paume", 66f, 22f, Y, 5.6f, bold = true)
+                grip(76f, 48f, butt = 44f, tip = 70f)
+                arrow(24f, 26f, 32f, 44f, Y, 1.2f)
+                text("le talon dépasse de 2-3 cm", 80f, 12f, Y, 5.6f, bold = true)
+                text("derrière la paume", 80f, 19f, Y, 5.6f, bold = true)
             }
             Illus.GRIPS_THREE -> {
                 val labels = listOf("Allemande", "Américaine", "Française")
-                val subs = listOf("paume vers le sol", "mains à 45°", "pouce en haut")
+                val subs = listOf("dos de main en haut", "mains à 45°", "pouce en haut")
                 val angles = listOf(0f, 45f, 90f)
                 for (k in 0..2) {
                     val cx = 28f + k * 52f
-                    // avant-bras (cercle) et main en rectangle tourné
-                    d.rotate(angles[k], o(cx, 40f)) {
-                        rect(cx - 12f, 36f, 24f, 8f, SKIN, fill = true, r = 3f)
-                        circle(cx - 6f, 33.5f, 2.2f, Color(0xFFE0AE88), fill = true) // pouce
-                    }
-                    stick(cx, 40f, cx, 14f, 2.2f)
                     oval(cx, 66f, 18f, 3f, HEAD, fill = true)
+                    // la baguette sort entre le pouce et l'index
+                    val a = angles[k] * PI.toFloat() / 180f
+                    val sx = cx + (-4.5f * cos(a) - 3f * sin(a)) * 0.95f
+                    val sy = 34f + (-4.5f * sin(a) + 3f * cos(a)) * 0.95f
+                    stick(sx, sy, cx + 2f, 63f, 2.2f)
+                    fistFront(cx, 34f, angles[k], 0.95f)
                     text(labels[k], cx, 76f, if (k == 1) Y else W, 6f, bold = true)
                     text(subs[k], cx, 84f, M, 4.8f)
                 }
@@ -561,14 +805,14 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
                 text("pour commencer", 80f, 9f, Y, 4.6f, bold = true)
             }
             Illus.TOO_TIGHT -> {
-                stick(4f, 40f, 74f, 40f, 2.6f)
-                hand(30f, 40f, tight = true)
-                cross(40f, 70f)
-                text("crispé", 40f, 82f, M, 5.6f)
-                stick(86f, 40f, 156f, 40f, 2.6f)
-                hand(112f, 40f)
-                check(120f, 70f)
-                text("détendu", 120f, 82f, W, 5.6f, bold = true)
+                grip(50f, 44f, 0.7f, tight = true, tip = 30f, butt = 24f)
+                cross(30f, 70f)
+                text("crispé", 30f, 80f, M, 5.6f)
+                text("doigts serrés, poignet bloqué", 40f, 87f, M, 4.4f)
+                grip(128f, 44f, 0.7f, tip = 30f, butt = 24f)
+                check(110f, 70f)
+                text("détendu", 110f, 80f, W, 5.6f, bold = true)
+                text("un peu d'air dans la main", 118f, 87f, M, 4.4f)
                 text("tiens-la comme un oiseau", 80f, 10f, Y, 6f, bold = true)
             }
 
@@ -581,8 +825,9 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
                 text("le ballon", 40f, 12f, M, 5.4f)
                 // baguette
                 snareSide(98f, 64f)
-                stick(100f, 30f, 112f, 62f, 2f)
                 stick(100f, 30f, 128f, 22f, 2f, WOOD.copy(alpha = 0.35f))
+                stick(98f, 26f, 112f, 62f, 2f)
+                fistSide(101f, 33f, 69f, 1.5f)
                 arc(112f, 38f, 18f, 75f, -85f, G, 1.2f, arrowEnd = true)
                 text("la baguette", 112f, 12f, W, 5.4f, bold = true)
                 text("lancer… et laisser remonter", 80f, 88f, Y, 5.4f, bold = true)
@@ -590,21 +835,20 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
             Illus.START_HEIGHT -> {
                 floor()
                 snareSide(70f, 60f)
-                stick(70f, 22f, 86f, 40f, 2.4f)
+                stick(66f, 18f, 86f, 40f, 2.4f)
+                fistSide(71f, 23.5f, 48f, 1.6f)
                 arrow(98f, 40f, 98f, 60f, Y, 1.2f, both = true)
                 text("≈ 20 cm", 116f, 50f, Y, 6.4f, bold = true)
                 text("départ : olive à 20 cm de la peau", 80f, 10f, W, 5.4f)
             }
             Illus.WRIST_MOTION -> {
-                // avant-bras horizontal, poignet pivot
-                line(14f, 52f, 70f, 52f, SKIN, 6f)
-                circle(72f, 52f, 3f, Y, fill = true)
-                stick(72f, 52f, 140f, 64f, 2.4f)
-                stick(72f, 52f, 132f, 24f, 2.4f, WOOD.copy(alpha = 0.35f))
-                arc(72f, 52f, 58f, -25f, 33f, Y, 1.4f, arrowEnd = true)
-                text("le poignet d'abord,", 4f, 16f, Y, 5.8f, bold = true, align = 1)
-                text("l'avant-bras accompagne", 4f, 24f, Y, 5.8f, bold = true, align = 1)
-                text("pivot", 72f, 62f, M, 5f)
+                stick(72f, 54f, 128f, 18f, 2.4f, WOOD.copy(alpha = 0.3f))
+                grip(72f, 54f, 0.8f, angleDeg = 8f, tip = 84f, butt = 30f)
+                arc(72f, 54f, 52f, -30f, 34f, Y, 1.4f, arrowEnd = true)
+                circle(51.5f, 50f, 2.4f, Y, fill = true)
+                text("pivot : le poignet", 40f, 70f, Y, 5f, bold = true)
+                text("le poignet d'abord,", 4f, 12f, Y, 5.8f, bold = true, align = 1)
+                text("l'avant-bras accompagne", 4f, 20f, Y, 5.8f, bold = true, align = 1)
             }
             Illus.REBOUND -> {
                 floor()
@@ -627,11 +871,13 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
             Illus.HEIGHT_VOLUME -> {
                 floor()
                 snareSide(16f, 64f)
-                stick(18f, 54f, 30f, 62f, 2f)
+                stick(14f, 51f, 30f, 62f, 2f)
+                fistSide(19f, 54.5f, 34f, 1.4f)
                 arc(30f, 64f, 5f, 200f, 140f, M, 1f)
                 text("baguette basse = doux", 4f, 40f, M, 5.6f, align = 1)
                 snareSide(98f, 64f)
-                stick(96f, 18f, 112f, 62f, 2f)
+                stick(94f, 13f, 112f, 62f, 2f)
+                fistSide(96.5f, 19f, 70f, 1.4f)
                 arc(112f, 64f, 6f, 200f, 140f, Y, 1.2f)
                 arc(112f, 64f, 12f, 200f, 140f, Y, 1.2f)
                 arc(112f, 64f, 18f, 200f, 140f, Y, 1.2f)
@@ -641,8 +887,10 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
                 floor()
                 snareSide(66f, 64f)
                 line(30f, 26f, 130f, 26f, Y, 1f, dash = true)
-                stick(58f, 44f, 70f, 26f, 2.2f)
-                stick(102f, 44f, 90f, 26f, 2.2f)
+                stick(56f, 47f, 70f, 26f, 2.2f)
+                stick(104f, 47f, 90f, 26f, 2.2f)
+                fistSide(59f, 42f, -56f, 1.4f)
+                d.scale(-1f, 1f, o(101f, 42f)) { fistSide(101f, 42f, -56f, 1.4f) }
                 text("G", 54f, 50f, W, 6f, bold = true)
                 text("D", 106f, 50f, W, 6f, bold = true)
                 text("mêmes hauteurs = même son", 80f, 14f, Y, 5.8f, bold = true)
@@ -657,16 +905,16 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
                 circle(107f, 52f, 2.6f, HEAD, fill = true)
                 // jambe et pied
                 if (up) {
-                    line(4f, 30f, 40f, 34f, W, 3.4f)   // cuisse
-                    line(40f, 34f, 56f, 62f, W, 3.2f)  // tibia
-                    poly(56f, 62f, 62f, 70f, 90f, 75f, c = W, w = 2.8f) // talon levé, pointe sur la pédale
+                    limb(0f, 30f, 40f, 34f, 10f, 8f, PANTS)   // cuisse
+                    limb(40f, 34f, 60f, 60f, 7.5f, 5.5f, PANTS)  // tibia
+                    shoe(57f, 66f, 84f, 76f) // talon levé, pointe sur la pédale
                     arrow(40f, 22f, 40f, 40f, Y, 1.2f, both = true)
                     text("talon levé : la jambe aide", 100f, 8f, Y, 5.8f, bold = true)
                     text("plus de puissance", 100f, 16f, M, 5f)
                 } else {
-                    line(4f, 34f, 38f, 34f, W, 3.4f)   // cuisse
-                    line(38f, 34f, 44f, 70f, W, 3.2f)  // tibia
-                    poly(44f, 70f, 44f, 80f, 90f, 75f, c = W, w = 2.8f) // talon posé
+                    limb(0f, 34f, 38f, 34f, 10f, 8f, PANTS)   // cuisse
+                    limb(38f, 34f, 46f, 71f, 7.5f, 5.5f, PANTS)  // tibia
+                    shoe(42f, 80.5f, 72f, 77f) // talon posé
                     arc(46f, 74f, 12f, -70f, 45f, Y, 1.4f, arrowEnd = true)
                     text("talon posé : la cheville travaille", 100f, 8f, Y, 5.8f, bold = true)
                     text("plus de contrôle, idéal pour débuter", 100f, 16f, M, 5f)
@@ -678,6 +926,9 @@ private class Sketch(val d: DrawScope, val tm: TextMeasurer) {
                 poly(40f, 82f, 92f, 74f, c = M, w = 2f)
                 line(92f, 74f, 100f, 52f, M, 1.4f)
                 circle(101f, 50f, 2.6f, HEAD, fill = true)
+                limb(0f, 40f, 34f, 40f, 10f, 8f, PANTS)
+                limb(34f, 40f, 44f, 72f, 7.5f, 5.5f, PANTS)
+                shoe(41f, 81f, 70f, 77.5f)
                 arc(92f, 74f, 26f, -75f, -40f, G, 1.4f, arrowEnd = true)
                 text("frappe… puis relâche :", 52f, 18f, W, 5.8f, bold = true)
                 text("la mailloche ne reste pas collée", 52f, 26f, Y, 5.6f, bold = true)
